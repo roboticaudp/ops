@@ -48,7 +48,8 @@ export const TeamService = {
 
   async delete(id: string, supabase: SupabaseClient = defaultClient) {
     try {
-      // 1. Eliminar asignaciones relacionadas primero (para no violar FK constraint)
+      // 1. Eliminar asignaciones relacionadas primero
+      // Si esto falla por RLS, el siguiente paso (eliminar equipo) fallará por FK constraint
       const { error: assignError } = await supabase
         .from('assignments')
         .delete()
@@ -57,6 +58,9 @@ export const TeamService = {
       if (assignError) handleServiceError(assignError);
 
       // 2. Eliminar el equipo
+      // Usamos .select() para confirmar que la fila realmente se eliminó.
+      // En Supabase, si una política RLS bloquea el borrado, no devuelve error, 
+      // simplemente devuelve una lista vacía de filas afectadas.
       const { data, error } = await supabase
         .from('teams')
         .delete()
@@ -66,11 +70,16 @@ export const TeamService = {
       if (error) handleServiceError(error);
       
       if (!data || data.length === 0) {
-        throw new Error("No se pudo eliminar el equipo. Verifica los permisos o si existe.");
+        // Si llegamos aquí sin error de Supabase pero sin datos, es casi seguro un tema de RLS
+        throw new Error("No se pudo eliminar el equipo. Esto suele deberse a que las políticas de seguridad (RLS) de la base de datos no permiten el borrado para tu usuario actual o el registro ya no existe.");
       }
 
       return true;
-    } catch (error) {
+    } catch (error: any) {
+      // Si ya es un AppError o Error con mensaje descriptivo, lo relanzamos
+      if (error instanceof Error && error.message.includes('RLS')) {
+        throw error;
+      }
       handleServiceError(error);
     }
   }
