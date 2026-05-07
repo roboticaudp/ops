@@ -2,17 +2,20 @@
 
 import { useState } from 'react';
 import { Team } from '@/types';
-import { Card, Typography, Avatar, ActionButtons, Badge } from '@/components/ui';
+import { Card, Typography, Avatar, ActionButtons, Badge, Button } from '@/components/ui';
+import { Trash2 } from 'lucide-react';
 import { EntitySidebar } from '@/components/layout/EntitySidebar';
 import { BlockSelectionGrid } from '@/components/features/solver/grids';
 
 interface TeamCardProps {
   team: Team;
   onUpdate?: (id: string, updates: Partial<Team>) => Promise<boolean>;
+  onDelete?: (id: string) => Promise<boolean>;
 }
 
-export function TeamCard({ team, onUpdate }: TeamCardProps) {
+export function TeamCard({ team, onUpdate, onDelete }: TeamCardProps) {
   const [loading, setLoading] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [tempAvailability, setTempAvailability] = useState(team.availability);
 
   const hasChanges = JSON.stringify(tempAvailability) !== JSON.stringify(team.availability);
@@ -31,14 +34,37 @@ export function TeamCard({ team, onUpdate }: TeamCardProps) {
     setTempAvailability(team.availability);
   };
 
+  const handleDelete = async () => {
+    if (!onDelete) return;
+    if (!window.confirm(`¿Estás seguro de que deseas eliminar al equipo ${team.name}?`)) return;
+    setIsDeleting(true);
+    try {
+      await onDelete(team.id);
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
   return (
     <Card className="flex flex-col xl:flex-row gap-8 p-0 overflow-hidden border-zinc-800/50 bg-zinc-900/20">
       <EntitySidebar>
         <div className="space-y-6">
-          <div className="space-y-2">
-            <Avatar name={team.name} />
-            <Typography as="h3">{team.name}</Typography>
-            <Typography as="p" emphasis="medium" className="text-xs">{team.school}</Typography>
+          <div className="flex justify-between items-start">
+            <div className="space-y-2">
+              <Avatar name={team.name} />
+              <Typography as="h3">{team.name}</Typography>
+              <Typography as="p" emphasis="medium" className="text-xs">{team.school}</Typography>
+            </div>
+            {onDelete && (
+              <Button 
+                variant="ghost" 
+                className="text-red-500 hover:text-red-400 p-2" 
+                onClick={handleDelete} 
+                disabled={isDeleting}
+              >
+                <Trash2 size={16} />
+              </Button>
+            )}
           </div>
 
           <div className="bg-zinc-950 p-4 rounded-xl border border-zinc-800">

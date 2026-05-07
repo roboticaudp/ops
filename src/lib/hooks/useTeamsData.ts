@@ -77,5 +77,28 @@ export function useTeamsData(competitionId: string | undefined) {
     }
   }, [teams]);
 
-  return { teams, loading, error, addTeam, updateTeam, refresh: loadData };
+  /** Optimistic delete: quita del estado local inmediatamente, luego persiste en DB */
+  const deleteTeam = useCallback(async (id: string): Promise<boolean> => {
+    setError(null);
+
+    // 1. Snapshot para rollback
+    const snapshot = teams.find(t => t.id === id);
+    if (!snapshot) return false;
+
+    // 2. Aplicar cambios optimistamente
+    setTeams(prev => prev.filter(t => t.id !== id));
+
+    try {
+      // 3. Persistir en DB
+      await TeamService.delete(id);
+      return true;
+    } catch (err: any) {
+      // 4. Rollback al snapshot original
+      setTeams(prev => [...prev, snapshot]);
+      setError(err.message || 'Error al eliminar equipo');
+      return false;
+    }
+  }, [teams]);
+
+  return { teams, loading, error, addTeam, updateTeam, deleteTeam, refresh: loadData };
 }

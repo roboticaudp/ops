@@ -44,5 +44,19 @@ export const TeamService = {
     } catch (error) {
       handleServiceError(error);
     }
+  },
+
+  async delete(id: string, supabase: SupabaseClient = defaultClient) {
+    try {
+      const { error } = await supabase
+        .from('teams')
+        .delete()
+        .eq('id', id);
+      
+      if (error) handleServiceError(error);
+      return true;
+    } catch (error) {
+      handleServiceError(error);
+    }
   }
 };

@@ -7,7 +7,7 @@ import { Skeleton, Typography } from '@/components/ui';
 
 export default function TeamsPage() {
   const { activeCompetition } = useCompetition();
-  const { teams, loading, addTeam, updateTeam } = useTeamsData(activeCompetition?.id);
+  const { teams, loading, addTeam, updateTeam, deleteTeam } = useTeamsData(activeCompetition?.id);
 
   if (!activeCompetition) return null;
 
@@ -42,6 +42,7 @@ export default function TeamsPage() {
                   key={team.id}
                   team={team}
                   onUpdate={updateTeam}
+                  onDelete={deleteTeam}
                 />
               ))
             )}
