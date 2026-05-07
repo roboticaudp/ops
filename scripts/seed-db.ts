@@ -24,7 +24,7 @@ const supabase = createClient(supabaseUrl, supabaseKey, {
   },
   // Provide WebSocket transport for Node environments < 22
   realtime: {
-    transport: ws,
+    transport: ws as any,
   },
 });
 
