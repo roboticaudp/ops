@@ -1,7 +1,7 @@
 'use client';
 
 import { Team, Tutor, Assignment, TIME_BLOCKS } from '@/types';
-import { Card, Typography } from '@/components/ui';
+import { Card, Typography, StatsPanel, StatsItem } from '@/components/ui';
 import { MiniAvailabilityGrid } from '@/components/features/solver/grids';
 import { analyzeFailureReason, DiagnosticType } from '@/lib/diagnostics';
 import { AlertTriangle, ShieldX, GitMerge, Info } from 'lucide-react';
@@ -126,22 +126,11 @@ export function FailureDiagnosisCard({ team, tutors, assignments }: FailureDiagn
       )}
 
       {/* Estadísticas de bloques */}
-      <div className="flex items-center gap-4 px-3 py-2 bg-zinc-950/50 rounded-lg border border-zinc-900">
-        <div className="text-center">
-          <p className="text-lg font-bold text-zinc-200">{team.availability.length}</p>
-          <p className="text-[10px] text-zinc-500">Bloques totales</p>
-        </div>
-        <div className="w-px h-8 bg-zinc-800" />
-        <div className="text-center">
-          <p className="text-lg font-bold text-green-400">{diagnostic.openBlocks}</p>
-          <p className="text-[10px] text-zinc-500">Con opción</p>
-        </div>
-        <div className="w-px h-8 bg-zinc-800" />
-        <div className="text-center">
-          <p className="text-lg font-bold text-red-400">{diagnostic.fullBlocks}</p>
-          <p className="text-[10px] text-zinc-500">Llenos (4/4)</p>
-        </div>
-      </div>
+      <StatsPanel>
+        <StatsItem label="Bloques totales" value={team.availability.length} />
+        <StatsItem label="Con opción" value={diagnostic.openBlocks} valueClassName="text-green-400" />
+        <StatsItem label="Llenos (4/4)" value={diagnostic.fullBlocks} valueClassName="text-red-400" />
+      </StatsPanel>
 
       {/* Grid visual con colores */}
       <div className="space-y-1.5">
