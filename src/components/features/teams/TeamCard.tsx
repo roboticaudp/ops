@@ -1,0 +1,72 @@
+'use client';
+
+import { useState } from 'react';
+import { Team } from '@/types';
+import { Card, Typography, Avatar, ActionButtons, Badge } from '@/components/ui';
+import { EntitySidebar } from '@/components/layout/EntitySidebar';
+import { BlockSelectionGrid } from '@/components/features/solver/grids';
+import { TeamService } from '@/services/team.service';
+
+interface TeamCardProps {
+  team: Team;
+  onUpdate?: () => void;
+}
+
+export function TeamCard({ team, onUpdate }: TeamCardProps) {
+  const [loading, setLoading] = useState(false);
+  const [tempAvailability, setTempAvailability] = useState(team.availability);
+
+  const hasChanges = JSON.stringify(tempAvailability) !== JSON.stringify(team.availability);
+
+  const handleSave = async () => {
+    setLoading(true);
+    try {
+      await TeamService.update(team.id, { availability: tempAvailability });
+      if (onUpdate) onUpdate();
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleReset = () => {
+    setTempAvailability(team.availability);
+  };
+
+  return (
+    <Card className="flex flex-col xl:flex-row gap-8 p-0 overflow-hidden border-zinc-800/50 bg-zinc-900/20">
+      <EntitySidebar>
+        <div className="space-y-6">
+          <div className="space-y-2">
+            <Avatar name={team.name} />
+            <Typography as="h3">{team.name}</Typography>
+            <Typography as="p" emphasis="medium" className="text-xs">{team.school}</Typography>
+          </div>
+
+          <div className="bg-zinc-950 p-4 rounded-xl border border-zinc-800">
+            <Typography as="p" emphasis="medium" className="text-xs">Responsable:</Typography>
+            <Typography as="p" emphasis="medium" className="text-sm">{team.professor}</Typography>
+          </div>
+        </div>
+
+        {hasChanges && (
+          <ActionButtons
+            onSave={handleSave}
+            onReset={handleReset}
+            loading={loading}
+          />
+        )}
+      </EntitySidebar>
+
+      <div className="flex-1 p-6 bg-zinc-950/20">
+        <div className="mb-4 flex items-center justify-between">
+          <Typography as="p" emphasis="medium" className="text-xs">Disponibilidad del Equipo:</Typography>
+          <Badge color="blue">{tempAvailability.length} bloques marcados</Badge>
+        </div>
+        <BlockSelectionGrid
+          selected={tempAvailability}
+          onChange={setTempAvailability}
+        />
+      </div>
+    </Card>
+  );
+}

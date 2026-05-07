@@ -1,0 +1,13 @@
+import type { NextConfig } from "next";
+
+const nextConfig: NextConfig = {
+  allowedDevOrigins: ['generating-laugh-tend-property.trycloudflare.com'],
+  images: {
+    remotePatterns: [
+      { protocol: 'https', hostname: 'lh3.googleusercontent.com' },
+      { protocol: 'https', hostname: 'api.dicebear.com' }
+    ]
+  }
+};
+
+export default nextConfig;
