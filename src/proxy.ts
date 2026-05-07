@@ -1,78 +1,34 @@
-import { createServerClient, type CookieOptions } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
 
+/**
+ * Middleware ligero: solo verifica la PRESENCIA de cookies de sesión.
+ * NO valida el JWT contra Supabase Auth (eso lo hace el server layout).
+ * Esto reduce drásticamente las llamadas a Supabase Auth API.
+ */
 export async function proxy(request: NextRequest) {
-  let response = NextResponse.next({
-    request: {
-      headers: request.headers,
-    },
-  });
-
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        get(name: string) {
-          return request.cookies.get(name)?.value;
-        },
-        set(name: string, value: string, options: CookieOptions) {
-          request.cookies.set({
-            name,
-            value,
-            ...options,
-          });
-          response = NextResponse.next({
-            request: {
-              headers: request.headers,
-            },
-          });
-          response.cookies.set({
-            name,
-            value,
-            ...options,
-          });
-        },
-        remove(name: string, options: CookieOptions) {
-          request.cookies.set({
-            name,
-            value: '',
-            ...options,
-          });
-          response = NextResponse.next({
-            request: {
-              headers: request.headers,
-            },
-          });
-          response.cookies.set({
-            name,
-            value: '',
-            ...options,
-          });
-        },
-      },
-    }
-  );
-
-  // IMPORTANTE: getUser() valida el JWT en el servidor
-  const { data: { user } } = await supabase.auth.getUser();
-
-  const isAuthPage = request.nextUrl.pathname.startsWith('/login') || 
+  const isAuthPage = request.nextUrl.pathname.startsWith('/login') ||
                      request.nextUrl.pathname.startsWith('/auth/callback');
 
-  if (!user && !isAuthPage) {
+  // Buscar cookies de sesión de Supabase (formato: sb-<project>-auth-token*)
+  const hasAuthCookie = request.cookies.getAll().some(
+    cookie => cookie.name.startsWith('sb-') && cookie.name.includes('-auth-token')
+  );
+
+  // Si no hay cookie de sesión y no está en una página de auth → redirect a login
+  if (!hasAuthCookie && !isAuthPage) {
     const url = request.nextUrl.clone();
     url.pathname = '/login';
     return NextResponse.redirect(url);
   }
 
-  if (user && request.nextUrl.pathname === '/login') {
+  // Si tiene cookie y está en login → redirect a home
+  if (hasAuthCookie && request.nextUrl.pathname === '/login') {
     const url = request.nextUrl.clone();
     url.pathname = '/';
     return NextResponse.redirect(url);
   }
 
-  return response;
+  return NextResponse.next();
 }
 
 export const config = {
@@ -87,3 +43,4 @@ export const config = {
     '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
   ],
 };
+

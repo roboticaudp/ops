@@ -83,5 +83,29 @@ export const CompetitionService = {
     
     if (error) handleServiceError(error);
     return true;
+  },
+
+  /**
+   * Cambia la competencia activa en 2 queries en vez de N+1.
+   * 1. Archiva TODAS las activas en batch
+   * 2. Activa la seleccionada
+   */
+  async setActive(id: string, supabase: SupabaseClient = defaultClient) {
+    // Batch: archivar todas las activas de una vez
+    const { error: archiveError } = await supabase
+      .from('competitions')
+      .update({ status: 'archived' })
+      .eq('status', 'active');
+    
+    if (archiveError) handleServiceError(archiveError);
+
+    // Activar la seleccionada
+    const { error: activateError } = await supabase
+      .from('competitions')
+      .update({ status: 'active' })
+      .eq('id', id);
+    
+    if (activateError) handleServiceError(activateError);
+    return true;
   }
 };

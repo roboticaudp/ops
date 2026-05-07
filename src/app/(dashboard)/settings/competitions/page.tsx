@@ -60,14 +60,7 @@ export default function SettingsCompetitionsPage() {
   const handleSetActive = async (id: string) => {
     setLoading(true);
     try {
-      // Primero ponemos todas en archived
-      for (const c of competitions) {
-        if (c.status === 'active') {
-          await CompetitionService.update(c.id, { status: 'archived' });
-        }
-      }
-      // Luego activamos la seleccionada
-      await CompetitionService.update(id, { status: 'active' });
+      await CompetitionService.setActive(id);
       await refreshCompetitions();
     } catch (err) {
       setError('Error al cambiar la competencia activa.');
