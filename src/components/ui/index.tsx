@@ -12,3 +12,4 @@ export * from './Card';
 export * from './Badge';
 export * from './icons/Google';
 export * from './DropdownMenu';
+export * from './Legend';

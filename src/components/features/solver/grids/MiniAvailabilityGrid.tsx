@@ -2,6 +2,7 @@
 
 import { TIME_BLOCKS, Day } from '@/types';
 import { BlockStatus } from '@/lib/diagnostics';
+import { Legend, LegendItem } from '@/components/ui';
 
 interface AvailabilityGridProps {
   selectedBlocks: string[];
@@ -46,20 +47,11 @@ export function MiniAvailabilityGrid({ selectedBlocks, blockStatuses }: Availabi
       </div>
 
       {blockStatuses && (
-        <div className="flex items-center gap-3 pt-1">
-          <span className="flex items-center gap-1 text-[10px] text-zinc-500">
-            <span className="w-2 h-2 rounded-[2px] bg-green-500/80 inline-block" />
-            Disponible
-          </span>
-          <span className="flex items-center gap-1 text-[10px] text-zinc-500">
-            <span className="w-2 h-2 rounded-[2px] bg-amber-500/80 inline-block" />
-            Sin cupo
-          </span>
-          <span className="flex items-center gap-1 text-[10px] text-zinc-500">
-            <span className="w-2 h-2 rounded-[2px] bg-red-500/80 inline-block" />
-            Lleno (4/4)
-          </span>
-        </div>
+        <Legend className="pt-1">
+          <LegendItem color="bg-green-500/80">Disponible</LegendItem>
+          <LegendItem color="bg-amber-500/80">Sin cupo</LegendItem>
+          <LegendItem color="bg-red-500/80">Lleno (4/4)</LegendItem>
+        </Legend>
       )}
     </div>
   );

@@ -44,7 +44,6 @@ export function UnassignedTeamsSection({
 
   return (
     <div className="space-y-6">
-      {/* Resumen de severidades */}
       <div className="grid grid-cols-3 gap-3">
         <div className="flex items-center gap-3 px-4 py-3 bg-red-950/20 border border-red-900/30 rounded-xl">
           <ShieldX size={18} className="text-red-400 shrink-0" />
@@ -69,7 +68,6 @@ export function UnassignedTeamsSection({
         </div>
       </div>
 
-      {/* Tarjetas de diagnóstico */}
       <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
         {unassignedTeamDetails.map(team => (
           <FailureDiagnosisCard

@@ -10,6 +10,7 @@ const typographyVariants = cva("transition-colors", {
       h3: "font-medium uppercase text-2xl leading-tight tracking-tighter",
       h4: "font-medium uppercase text-xl leading-tight tracking-tighter",
       p: "text-lg leading-relaxed",
+      span: "text-sm leading-relaxed",
     },
     color: {
       default: "text-foreground",
@@ -33,7 +34,7 @@ const typographyVariants = cva("transition-colors", {
 export interface TypographyProps
   extends React.HTMLAttributes<HTMLElement>,
   Omit<VariantProps<typeof typographyVariants>, "as" | "color" | "emphasis"> {
-  as: "p" | "h1" | "h2" | "h3" | "h4";
+  as: "p" | "h1" | "h2" | "h3" | "h4" | "span";
   color?: "default" | "primary" | "white" | "muted";
   emphasis?: "full" | "high" | "medium" | "disabled";
 }
