@@ -167,7 +167,7 @@ export default function SchedulingPage() {
           <Typography as="p" emphasis="medium">Bloques con tutores que tienen cupos libres y están disponibles.</Typography>
         </header>
 
-        <SpareCapacityGrid tutors={tutors} assignments={result?.assignments || []} />
+        <SpareCapacityGrid tutors={tutors} teams={teams} assignments={result?.assignments || []} />
       </section>
 
       <section className="pt-12">
