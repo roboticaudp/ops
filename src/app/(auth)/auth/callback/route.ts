@@ -11,8 +11,6 @@ export async function GET(request: Request) {
 
   if (code) {
     const cookieStore = await cookies();
-    const response = NextResponse.redirect(new URL(next, request.url));
-
     const supabase = createServerClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -23,11 +21,9 @@ export async function GET(request: Request) {
           },
           set(name: string, value: string, options: CookieOptions) {
             cookieStore.set({ name, value, ...options });
-            response.cookies.set({ name, value, ...options });
           },
           remove(name: string, options: CookieOptions) {
             cookieStore.delete({ name, ...options });
-            response.cookies.set({ name, value: '', ...options });
           },
         },
       }
@@ -40,7 +36,7 @@ export async function GET(request: Request) {
 
       if (!email) {
         await AuthService.signOut(supabase);
-        return NextResponse.redirect(new URL('/login?error=no_email', request.url));
+        return NextResponse.redirect(`${origin}/login?error=no_email`);
       }
 
       // 1. Validar dominios permitidos
@@ -48,7 +44,7 @@ export async function GET(request: Request) {
 
       if (!hasValidDomain) {
         await AuthService.signOut(supabase);
-        return NextResponse.redirect(new URL('/login?error=invalid_domain', request.url));
+        return NextResponse.redirect(`${origin}/login?error=invalid_domain`);
       }
 
       // 2. Validar whitelist (Uso del DAL)
@@ -56,11 +52,11 @@ export async function GET(request: Request) {
 
       if (!isAllowed) {
         await AuthService.signOut(supabase);
-        return NextResponse.redirect(new URL('/login?error=not_allowed', request.url));
+        return NextResponse.redirect(`${origin}/login?error=not_allowed`);
       }
 
-      // Éxito: Retornar la respuesta que ya tiene las cookies inyectadas
-      return response;
+      // Éxito: Redirigir a la página solicitada (o al inicio)
+      return NextResponse.redirect(`${origin}${next}`);
     }
   }
 
