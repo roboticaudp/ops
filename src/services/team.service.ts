@@ -48,12 +48,27 @@ export const TeamService = {
 
   async delete(id: string, supabase: SupabaseClient = defaultClient) {
     try {
-      const { error } = await supabase
+      // 1. Eliminar asignaciones relacionadas primero (para no violar FK constraint)
+      const { error: assignError } = await supabase
+        .from('assignments')
+        .delete()
+        .eq('team_id', id);
+      
+      if (assignError) handleServiceError(assignError);
+
+      // 2. Eliminar el equipo
+      const { data, error } = await supabase
         .from('teams')
         .delete()
-        .eq('id', id);
+        .eq('id', id)
+        .select();
       
       if (error) handleServiceError(error);
+      
+      if (!data || data.length === 0) {
+        throw new Error("No se pudo eliminar el equipo. Verifica los permisos o si existe.");
+      }
+
       return true;
     } catch (error) {
       handleServiceError(error);

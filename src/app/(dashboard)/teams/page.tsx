@@ -7,7 +7,7 @@ import { Skeleton, Typography } from '@/components/ui';
 
 export default function TeamsPage() {
   const { activeCompetition } = useCompetition();
-  const { teams, loading, addTeam, updateTeam, deleteTeam } = useTeamsData(activeCompetition?.id);
+  const { teams, loading, error, addTeam, updateTeam, deleteTeam } = useTeamsData(activeCompetition?.id);
 
   if (!activeCompetition) return null;
 
@@ -21,6 +21,12 @@ export default function TeamsPage() {
           Gestión de equipos de la competencia.
         </Typography>
       </header>
+
+      {error && (
+        <div className="bg-red-500/10 border border-red-500/20 text-red-400 p-4 rounded-xl mb-6">
+          {error}
+        </div>
+      )}
 
       <AddTeamForm
         competitionId={activeCompetition.id}
