@@ -163,15 +163,6 @@ export default function SchedulingPage() {
 
       <section className="pt-12">
         <header className="mb-10">
-          <Typography as="h2">Mapa de Disponibilidad Remanente</Typography>
-          <Typography as="p" emphasis="medium">Bloques con tutores que tienen cupos libres y están disponibles.</Typography>
-        </header>
-
-        <SpareCapacityGrid tutors={tutors} teams={teams} assignments={result?.assignments || []} />
-      </section>
-
-      <section className="pt-12">
-        <header className="mb-10">
           <Typography as="h2">Equipos sin Asignación</Typography>
           <Badge color={(result?.unassignedTeams?.length ?? 0) > 0 ? 'red' : 'green'}>
             {result?.unassignedTeams?.length ?? 0} equipos
@@ -183,6 +174,15 @@ export default function SchedulingPage() {
           unassignedTeamNames={result?.unassignedTeams || []}
           assignments={result?.assignments || []}
         />
+      </section>
+
+      <section className="pt-12">
+        <header className="mb-10">
+          <Typography as="h2">Mapa de Disponibilidad Remanente</Typography>
+          <Typography as="p" emphasis="medium">Bloques con tutores que tienen cupos libres y están disponibles.</Typography>
+        </header>
+
+        <SpareCapacityGrid tutors={tutors} teams={teams} assignments={result?.assignments || []} />
       </section>
 
       <section className="pt-12">
