@@ -7,7 +7,8 @@ import { TutorWorkloadCard } from '@/components/features/tutors/TutorWorkloadCar
 import { SpareCapacityGrid, MainAssignmentGrid, UnassignedTeamsSection } from '@/components/features/solver';
 import { useCompetition } from '@/lib/context/CompetitionContext';
 import { Typography, Badge, Button } from '@/components/ui';
-import { Lock, Unlock } from 'lucide-react';
+import { Lock, Unlock, Download } from 'lucide-react';
+import { buildExportRows, downloadCSV } from '@/lib/export';
 import { TeamService } from '@/services/team.service';
 import { TutorService } from '@/services/tutor.service';
 import { CompetitionService } from '@/services/competition.service';
@@ -131,9 +132,21 @@ export default function SchedulingPage() {
       </header>
 
       <section className="pt-12">
-        <div className="flex justify-end gap-3">
+        <div className="flex justify-end gap-3 mb-4">
           {result && (
             <>
+              <Button
+                variant="outline"
+                onClick={() => {
+                  const rows = buildExportRows(result.assignments, teams, tutors);
+                  const name = activeCompetition?.name?.replace(/\s+/g, '_') || 'asignaciones';
+                  downloadCSV(rows, `${name}_asignaciones.csv`);
+                }}
+                className="flex items-center gap-2"
+              >
+                <Download size={14} />
+                Exportar CSV
+              </Button>
               <Button
                 variant="outline"
                 onClick={unfixAllAssignments}
