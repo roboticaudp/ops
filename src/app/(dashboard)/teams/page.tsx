@@ -7,7 +7,7 @@ import { Skeleton, Typography } from '@/components/ui';
 
 export default function TeamsPage() {
   const { activeCompetition } = useCompetition();
-  const { teams, loading, refresh } = useTeamsData(activeCompetition?.id);
+  const { teams, loading, addTeam, updateTeam } = useTeamsData(activeCompetition?.id);
 
   if (!activeCompetition) return null;
 
@@ -24,7 +24,7 @@ export default function TeamsPage() {
 
       <AddTeamForm
         competitionId={activeCompetition.id}
-        onSuccess={refresh}
+        onAdd={addTeam}
       />
 
       <div className="space-y-4">
@@ -41,7 +41,7 @@ export default function TeamsPage() {
                 <TeamCard
                   key={team.id}
                   team={team}
-                  onUpdate={refresh}
+                  onUpdate={updateTeam}
                 />
               ))
             )}
@@ -51,3 +51,4 @@ export default function TeamsPage() {
     </div>
   );
 }
+

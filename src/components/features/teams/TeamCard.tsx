@@ -5,11 +5,10 @@ import { Team } from '@/types';
 import { Card, Typography, Avatar, ActionButtons, Badge } from '@/components/ui';
 import { EntitySidebar } from '@/components/layout/EntitySidebar';
 import { BlockSelectionGrid } from '@/components/features/solver/grids';
-import { TeamService } from '@/services/team.service';
 
 interface TeamCardProps {
   team: Team;
-  onUpdate?: () => void;
+  onUpdate?: (id: string, updates: Partial<Team>) => Promise<boolean>;
 }
 
 export function TeamCard({ team, onUpdate }: TeamCardProps) {
@@ -19,10 +18,10 @@ export function TeamCard({ team, onUpdate }: TeamCardProps) {
   const hasChanges = JSON.stringify(tempAvailability) !== JSON.stringify(team.availability);
 
   const handleSave = async () => {
+    if (!onUpdate) return;
     setLoading(true);
     try {
-      await TeamService.update(team.id, { availability: tempAvailability });
-      if (onUpdate) onUpdate();
+      await onUpdate(team.id, { availability: tempAvailability });
     } finally {
       setLoading(false);
     }

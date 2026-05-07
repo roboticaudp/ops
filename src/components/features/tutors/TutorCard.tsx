@@ -5,10 +5,9 @@ import { Tutor, Assignment } from '@/types';
 import { Card, Typography, Badge, Avatar, Counter, ActionButtons } from '@/components/ui';
 import { BlockSelectionGrid } from '@/components/features/solver/grids';
 import { Mail } from 'lucide-react';
-import { TutorService } from '@/services/tutor.service';
 import { EntitySidebar } from '@/components/layout/EntitySidebar';
 
-export function TutorCard({ tutor, assignments, onUpdate }: { tutor: Tutor, assignments: Assignment[], onUpdate?: () => void }) {
+export function TutorCard({ tutor, assignments, onUpdate }: { tutor: Tutor, assignments: Assignment[], onUpdate?: (id: string, updates: Partial<Tutor>) => Promise<boolean> }) {
   const [tempAvailability, setTempAvailability] = useState(tutor.availability);
   const [tempCapacity, setTempCapacity] = useState(tutor.max_sessions);
   const [loading, setLoading] = useState(false);
@@ -18,10 +17,10 @@ export function TutorCard({ tutor, assignments, onUpdate }: { tutor: Tutor, assi
     tempCapacity !== tutor.max_sessions;
 
   const handleSave = async () => {
+    if (!onUpdate) return;
     setLoading(true);
     try {
-      await TutorService.update(tutor.id, { availability: tempAvailability, max_sessions: tempCapacity });
-      if (onUpdate) onUpdate();
+      await onUpdate(tutor.id, { availability: tempAvailability, max_sessions: tempCapacity });
     } finally {
       setLoading(false);
     }

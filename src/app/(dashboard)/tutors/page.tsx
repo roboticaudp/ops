@@ -7,7 +7,7 @@ import { useTutorsData } from '@/lib/hooks/useTutorsData';
 
 export default function TutorsPage() {
   const { activeCompetition } = useCompetition();
-  const { tutors, assignments, loading, refresh } = useTutorsData(activeCompetition?.id);
+  const { tutors, assignments, loading, addTutor, updateTutor } = useTutorsData(activeCompetition?.id);
 
   if (!activeCompetition) return null;
 
@@ -24,7 +24,7 @@ export default function TutorsPage() {
 
       <AddTutorForm
         competitionId={activeCompetition.id}
-        onSuccess={refresh}
+        onAdd={addTutor}
       />
 
       <div className="space-y-4">
@@ -44,7 +44,7 @@ export default function TutorsPage() {
                   key={tutor.id}
                   tutor={tutor}
                   assignments={assignments.filter(a => a.tutor_id === tutor.id)}
-                  onUpdate={refresh}
+                  onUpdate={updateTutor}
                 />
               ))
             )}
@@ -54,3 +54,4 @@ export default function TutorsPage() {
     </div>
   );
 }
+

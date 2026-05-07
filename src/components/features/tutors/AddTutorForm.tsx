@@ -5,14 +5,14 @@ import { UI } from '@/styles/ui';
 import { ExpandableForm, Typography, Counter } from '@/components/ui';
 import { BlockSelectionGrid } from '@/components/features/solver/grids';
 import { UserPlus, User, Mail, ShieldAlert } from 'lucide-react';
-import { TutorService } from '@/services/tutor.service';
+import { Tutor } from '@/types';
 
 interface AddTutorFormProps {
   competitionId: string;
-  onSuccess: () => void;
+  onAdd: (payload: Omit<Tutor, 'id'>) => Promise<boolean>;
 }
 
-export function AddTutorForm({ competitionId, onSuccess }: AddTutorFormProps) {
+export function AddTutorForm({ competitionId, onAdd }: AddTutorFormProps) {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [capacity, setCapacity] = useState(3);
@@ -22,10 +22,10 @@ export function AddTutorForm({ competitionId, onSuccess }: AddTutorFormProps) {
   const handleSubmit = async () => {
     setError(null);
     try {
-      const success = await TutorService.create({
+      const success = await onAdd({
         competition_id: competitionId,
         name,
-        email: email || null,
+        email: email || undefined,
         max_sessions: capacity,
         availability
       });
@@ -35,7 +35,6 @@ export function AddTutorForm({ competitionId, onSuccess }: AddTutorFormProps) {
         setEmail('');
         setCapacity(3);
         setAvailability([]);
-        onSuccess();
         return true;
       }
     } catch (e: any) {

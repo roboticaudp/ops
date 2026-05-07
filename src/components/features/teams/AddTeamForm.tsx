@@ -5,14 +5,14 @@ import { UI } from '@/styles/ui';
 import { ExpandableForm, Typography } from '@/components/ui';
 import { BlockSelectionGrid } from '@/components/features/solver/grids';
 import { Users, School, UserCircle, ShieldAlert } from 'lucide-react';
-import { TeamService } from '@/services/team.service';
+import { Team } from '@/types';
 
 interface AddTeamFormProps {
   competitionId: string;
-  onSuccess: () => void;
+  onAdd: (payload: Omit<Team, 'id'>) => Promise<boolean>;
 }
 
-export function AddTeamForm({ competitionId, onSuccess }: AddTeamFormProps) {
+export function AddTeamForm({ competitionId, onAdd }: AddTeamFormProps) {
   const [name, setName] = useState('');
   const [school, setSchool] = useState('');
   const [professor, setProfessor] = useState('');
@@ -22,7 +22,7 @@ export function AddTeamForm({ competitionId, onSuccess }: AddTeamFormProps) {
   const handleSubmit = async () => {
     setError(null);
     try {
-      const success = await TeamService.create({
+      const success = await onAdd({
         competition_id: competitionId,
         name,
         school,
@@ -35,7 +35,6 @@ export function AddTeamForm({ competitionId, onSuccess }: AddTeamFormProps) {
         setSchool('');
         setProfessor('');
         setAvailability([]);
-        onSuccess();
         return true;
       }
     } catch (e: any) {
