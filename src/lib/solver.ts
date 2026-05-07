@@ -27,10 +27,11 @@ class SchedulingSolver {
   private teams: Team[];
   private tutors: Tutor[];
   private tutorGlobalUsage: Map<string, number>;
+  private schoolTeamCount: Map<string, number>;
   
   private bestAssignments: Assignment[] = [];
+  private bestScore: number = -1;
   private fixedAssignments: Assignment[] = [];
-  private maxAssignedCount = -1;
   private startTime: number = 0;
   private readonly TIME_LIMIT = 5000; // 5 seconds limit for browser safety
 
@@ -46,6 +47,12 @@ class SchedulingSolver {
     this.fixedAssignments.forEach(a => {
       this.tutorGlobalUsage.set(a.tutor_id, (this.tutorGlobalUsage.get(a.tutor_id) || 0) + 1);
     });
+
+    // Calcular cuántos equipos tiene cada colegio (para equidad)
+    this.schoolTeamCount = new Map();
+    teams.forEach(t => {
+      this.schoolTeamCount.set(t.school, (this.schoolTeamCount.get(t.school) || 0) + 1);
+    });
   }
 
   public solve(): SolverResult {
@@ -55,8 +62,8 @@ class SchedulingSolver {
     const fixedTeamIds = new Set(this.fixedAssignments.map(a => a.team_id));
     const teamsToAssign = this.teams.filter(t => !fixedTeamIds.has(t.id));
 
-    // Sort initially by MRV (teams with fewest options first)
-    const initialSorted = this.sortTeamsByDifficulty(teamsToAssign);
+    // Sort by: 1) MRV, 2) School equity (fewer teams from same school = higher priority)
+    const initialSorted = this.sortTeamsByPriority(teamsToAssign);
     
     // Start backtracking with fixed assignments already in the pool
     this.backtrack(initialSorted, [...this.fixedAssignments]);
@@ -64,13 +71,34 @@ class SchedulingSolver {
     return this.buildResult();
   }
 
+  /**
+   * Evalúa la calidad de una solución, priorizando:
+   * 1. Máxima cantidad de equipos asignados
+   * 2. Mayor diversidad de colegios (equidad)
+   */
+  private scoreSolution(assignments: Assignment[]): number {
+    const assignedTeamIds = new Set(assignments.map(a => a.team_id));
+
+    // Contar colegios únicos representados
+    const schoolsRepresented = new Set<string>();
+    assignments.forEach(a => {
+      const team = this.teams.find(t => t.id === a.team_id);
+      if (team) schoolsRepresented.add(team.school);
+    });
+
+    // Score: cantidad de asignaciones * 1000 + colegios únicos
+    // Esto prioriza primero más equipos, pero ante empate, más colegios diversos
+    return assignedTeamIds.size * 1000 + schoolsRepresented.size;
+  }
+
   private backtrack(remainingTeams: Team[], currentAssignments: Assignment[]): boolean {
     // Safety check for browser thread
     if (Date.now() - this.startTime > this.TIME_LIMIT) return true;
 
-    // Track best solution found so far (must include fixed ones)
-    if (currentAssignments.length > this.maxAssignedCount) {
-      this.maxAssignedCount = currentAssignments.length;
+    // Track best solution found so far using weighted score
+    const currentScore = this.scoreSolution(currentAssignments);
+    if (currentScore > this.bestScore) {
+      this.bestScore = currentScore;
       this.bestAssignments = [...currentAssignments];
     }
 
@@ -111,11 +139,25 @@ class SchedulingSolver {
       .sort((a, b) => (this.tutorGlobalUsage.get(a.id) || 0) - (this.tutorGlobalUsage.get(b.id) || 0));
   }
 
-  private sortTeamsByDifficulty(teams: Team[]): Team[] {
+  /**
+   * Ordena equipos por prioridad de asignación:
+   * 1. MRV: equipos con menos opciones de bloques primero (más difíciles de ubicar)
+   * 2. Equidad: equipos de colegios con menos representación primero
+   * 3. Alfabético como desempate final
+   */
+  private sortTeamsByPriority(teams: Team[]): Team[] {
     return [...teams].sort((a, b) => {
+      // 1. MRV: menos opciones de disponibilidad = mayor prioridad
       const aLen = a.availability.length;
       const bLen = b.availability.length;
       if (aLen !== bLen) return aLen - bLen;
+
+      // 2. Equidad escolar: colegios con menos equipos = mayor prioridad
+      const aSchoolCount = this.schoolTeamCount.get(a.school) || 0;
+      const bSchoolCount = this.schoolTeamCount.get(b.school) || 0;
+      if (aSchoolCount !== bSchoolCount) return aSchoolCount - bSchoolCount;
+
+      // 3. Desempate alfabético
       return a.name.localeCompare(b.name);
     });
   }
@@ -154,3 +196,4 @@ class SchedulingSolver {
 export function solveScheduling(teams: Team[], tutors: Tutor[], fixedAssignments: Assignment[] = []): SolverResult {
   return new SchedulingSolver(teams, tutors, fixedAssignments).solve();
 }
+
