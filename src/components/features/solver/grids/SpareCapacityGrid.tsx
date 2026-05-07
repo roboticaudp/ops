@@ -3,6 +3,7 @@
 import { Tutor, Team, Assignment, Block } from '@/types';
 import { CalendarGrid } from '@/components/ui';
 import { CapacityGridCell } from '@/components/features/solver/grids/cells/CapacityGridCell';
+import { SchedulingRules } from '@/lib/solver';
 
 interface SpareCapacityGridProps {
   tutors: Tutor[];
@@ -12,7 +13,10 @@ interface SpareCapacityGridProps {
 
 export function SpareCapacityGrid({ tutors, teams, assignments }: SpareCapacityGridProps) {
   const getSpareCapacityForBlock = (blockId: string) => {
-    // 1. Verificar si hay equipos sin asignar que necesiten este bloque
+    // 1. Verificar si el bloque ya alcanzó su capacidad máxima
+    if (SchedulingRules.isBlockAtFullCapacity(blockId, assignments)) return [];
+
+    // 2. Verificar si hay equipos sin asignar que necesiten este bloque
     const unassignedTeamsInBlock = teams.filter(team => {
       const needsBlock = team.availability.includes(blockId);
       const isAlreadyAssigned = assignments.some(a => a.team_id === team.id);
@@ -22,7 +26,7 @@ export function SpareCapacityGrid({ tutors, teams, assignments }: SpareCapacityG
     // Si no hay equipos sin asignar para este bloque, no hay capacidad útil
     if (unassignedTeamsInBlock.length === 0) return [];
 
-    // 2. Filtrar tutores con capacidad real disponible
+    // 3. Filtrar tutores con capacidad real disponible
     return tutors.filter(tutor => {
       const isAvailable = tutor.availability.includes(blockId);
       const isAlreadyAssignedInBlock = assignments.some(a => a.tutor_id === tutor.id && a.block_id === blockId);
