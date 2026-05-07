@@ -8,7 +8,7 @@ import { SpareCapacityGrid, MainAssignmentGrid, UnassignedTeamsSection } from '@
 import { useCompetition } from '@/lib/context/CompetitionContext';
 import { Typography, Badge, Button } from '@/components/ui';
 import { Lock, Unlock, Download } from 'lucide-react';
-import { buildExportRows, downloadCSV } from '@/lib/export';
+import { buildExportRows, downloadCSV, exportToGridExcel } from '@/lib/export';
 import { TeamService } from '@/services/team.service';
 import { TutorService } from '@/services/tutor.service';
 import { CompetitionService } from '@/services/competition.service';
@@ -135,6 +135,17 @@ export default function SchedulingPage() {
         <div className="flex justify-end gap-3 mb-4">
           {result && (
             <>
+              <Button
+                variant="outline"
+                onClick={() => {
+                  const name = activeCompetition?.name?.replace(/\s+/g, '_') || 'asignaciones';
+                  exportToGridExcel(result.assignments, teams, tutors, `${name}_plantilla.xlsx`);
+                }}
+                className="flex items-center gap-2 border-green-900/50 hover:bg-green-900/10 text-green-400"
+              >
+                <Download size={14} />
+                Exportar Plantilla (Excel)
+              </Button>
               <Button
                 variant="outline"
                 onClick={() => {
