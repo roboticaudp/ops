@@ -68,6 +68,9 @@ class SchedulingSolver {
     // Start backtracking with fixed assignments already in the pool
     this.backtrack(initialSorted, [...this.fixedAssignments]);
     
+    // Post-procesamiento: Rebalanceo activo para equidad escolar
+    this.bestAssignments = this.optimizeEquity(this.bestAssignments);
+    
     return this.buildResult();
   }
 
@@ -190,6 +193,85 @@ class SchedulingSolver {
       assignments: this.bestAssignments,
       unassignedTeams: unassignedNames
     };
+  }
+
+  /**
+   * Post-procesamiento para mejorar la equidad.
+   * Busca equipos sin asignar y verifica si pueden tomar el lugar de un equipo asignado
+   * cuyo colegio tenga una sobre-representación (muchos más equipos asignados).
+   */
+  private optimizeEquity(assignments: Assignment[]): Assignment[] {
+    let currentAssignments = [...assignments];
+    let improved = true;
+
+    while (improved) {
+      improved = false;
+
+      // 1. Contar equipos asignados por colegio
+      const assignedCountBySchool = new Map<string, number>();
+      this.teams.forEach(t => assignedCountBySchool.set(t.school, 0));
+      currentAssignments.forEach(a => {
+        const team = this.teams.find(t => t.id === a.team_id);
+        if (team) {
+          assignedCountBySchool.set(team.school, (assignedCountBySchool.get(team.school) || 0) + 1);
+        }
+      });
+
+      // 2. Identificar equipos sin asignar
+      const assignedIds = new Set(currentAssignments.map(a => a.team_id));
+      const unassignedTeams = this.teams.filter(t => !assignedIds.has(t.id));
+
+      let bestSwap: {
+        unassignedTeam: Team;
+        assignmentToReplace: Assignment;
+        schoolDifference: number;
+      } | null = null;
+
+      // 3. Buscar el mejor intercambio posible
+      for (const uTeam of unassignedTeams) {
+        const uSchoolCount = assignedCountBySchool.get(uTeam.school) || 0;
+
+        for (const blockId of uTeam.availability) {
+          // Buscamos candidatos a reemplazar que no estén fijados por el usuario
+          const candidates = currentAssignments.filter(a => a.block_id === blockId && !a.is_fixed);
+
+          for (const candidate of candidates) {
+            const candidateTeam = this.teams.find(t => t.id === candidate.team_id);
+            if (!candidateTeam) continue;
+
+            const cSchoolCount = assignedCountBySchool.get(candidateTeam.school) || 0;
+            const difference = cSchoolCount - uSchoolCount;
+
+            // Intercambiamos solo si mejora estrictamente la equidad (diferencia > 1)
+            // Priorizamos la mayor diferencia (ej: quitarle a un colegio con 5 para darle a uno con 0)
+            if (difference > 1) {
+              if (!bestSwap || difference > bestSwap.schoolDifference) {
+                bestSwap = {
+                  unassignedTeam: uTeam,
+                  assignmentToReplace: candidate,
+                  schoolDifference: difference
+                };
+              }
+            }
+          }
+        }
+      }
+
+      // 4. Aplicar el intercambio si encontramos uno
+      if (bestSwap) {
+        currentAssignments = currentAssignments.filter(a => a !== bestSwap!.assignmentToReplace);
+        currentAssignments.push({
+          competition_id: bestSwap.unassignedTeam.competition_id,
+          team_id: bestSwap.unassignedTeam.id,
+          tutor_id: bestSwap.assignmentToReplace.tutor_id,
+          block_id: bestSwap.assignmentToReplace.block_id,
+          is_fixed: false
+        });
+        improved = true;
+      }
+    }
+
+    return currentAssignments;
   }
 }
 
