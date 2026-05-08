@@ -7,7 +7,7 @@ import { TutorWorkloadCard } from '@/components/features/tutors/TutorWorkloadCar
 import { SpareCapacityGrid, MainAssignmentGrid, UnassignedTeamsSection } from '@/components/features/solver';
 import { useCompetition } from '@/lib/context/CompetitionContext';
 import { Typography, Badge, Button } from '@/components/ui';
-import { Lock, Unlock, Download } from 'lucide-react';
+import { Lock, Unlock, Download, AlertCircle, CheckCircle } from 'lucide-react';
 import { buildExportRows, downloadCSV, exportToGridExcel } from '@/lib/export';
 import { TeamService } from '@/services/team.service';
 import { TutorService } from '@/services/tutor.service';
@@ -189,6 +189,11 @@ export default function SchedulingPage() {
         <header className="mb-10">
           <Typography as="h2">Equipos sin Asignación</Typography>
           <Badge color={(result?.unassignedTeams?.length ?? 0) > 0 ? 'red' : 'green'}>
+            {(result?.unassignedTeams?.length ?? 0) > 0 ? (
+              <AlertCircle size={11} />
+            ) : (
+              <CheckCircle size={11} />
+            )}
             {result?.unassignedTeams?.length ?? 0} equipos
           </Badge>
         </header>

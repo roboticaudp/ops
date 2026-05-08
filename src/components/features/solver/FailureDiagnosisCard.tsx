@@ -1,7 +1,7 @@
 'use client';
 
 import { Team, Tutor, Assignment, TIME_BLOCKS } from '@/types';
-import { Card, Typography, StatsPanel, StatsItem } from '@/components/ui';
+import { Card, Typography, StatsPanel, StatsItem, Badge } from '@/components/ui';
 import { MiniAvailabilityGrid } from '@/components/features/solver/grids';
 import { analyzeFailureReason, DiagnosticType } from '@/lib/diagnostics';
 import { AlertTriangle, ShieldX, GitMerge, Info } from 'lucide-react';
@@ -72,15 +72,17 @@ export function FailureDiagnosisCard({ team, tutors, assignments }: FailureDiagn
           <Typography as="h3" className="text-base">{team.name}</Typography>
           <Typography as="p" emphasis="medium" className="text-xs">{team.school}</Typography>
         </div>
-        <span className={`flex items-center gap-1.5 px-2 py-1 rounded-lg border text-[11px] font-bold shrink-0 ${cfg.badgeClass}`}>
+        <Badge
+          variant={diagnostic.type === 'NO_TUTOR' || diagnostic.type === 'PHYSICAL_LIMIT' ? 'red' : 'yellow'}
+        >
           <Icon size={11} />
           {cfg.label}
-        </span>
+        </Badge>
       </div>
 
       {/* Razón del fallo */}
       <div className="space-y-1">
-        <Typography as="p" emphasis="medium" className="text-[11px] uppercase tracking-wider font-bold">
+        <Typography as="span" emphasis="medium" className="text-[11px] uppercase tracking-wider font-bold">
           Causa
         </Typography>
         <div className={`text-xs px-3 py-2 rounded-lg border ${cfg.badgeClass} flex items-start gap-2`}>
@@ -97,7 +99,7 @@ export function FailureDiagnosisCard({ team, tutors, assignments }: FailureDiagn
       {/* Hints accionables: qué tutor + en qué bloques */}
       {diagnostic.capacityHints.length > 0 && (
         <div className="space-y-2">
-          <Typography as="p" emphasis="medium" className="text-[11px] uppercase tracking-wider font-bold">
+          <Typography as="span" emphasis="medium" className="text-[11px] uppercase tracking-wider font-bold">
             Acción recomendada
           </Typography>
           <div className="space-y-2">
@@ -111,12 +113,9 @@ export function FailureDiagnosisCard({ team, tutors, assignments }: FailureDiagn
                 </span>
                 <div className="flex flex-wrap gap-1 mt-0.5">
                   {hint.availableBlocks.map(blockId => (
-                    <span
-                      key={blockId}
-                      className="text-[10px] font-bold px-1.5 py-0.5 bg-amber-500/10 border border-amber-500/20 text-amber-300 rounded"
-                    >
+                    <Badge key={blockId} variant="yellow">
                       {formatBlockLabel(blockId)}
-                    </span>
+                    </Badge>
                   ))}
                 </div>
               </div>

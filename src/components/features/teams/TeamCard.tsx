@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { Team } from '@/types';
 import { Card, Typography, Avatar, ActionButtons, Badge, Button } from '@/components/ui';
-import { Trash2 } from 'lucide-react';
+import { Trash2, Calendar } from 'lucide-react';
 import { EntitySidebar } from '@/components/layout/EntitySidebar';
 import { BlockSelectionGrid } from '@/components/features/solver/grids';
 
@@ -56,10 +56,10 @@ export function TeamCard({ team, onUpdate, onDelete }: TeamCardProps) {
               <Typography as="p" emphasis="medium" className="text-xs">{team.school}</Typography>
             </div>
             {onDelete && (
-              <Button 
-                variant="ghost" 
-                className="text-red-500 hover:text-red-400 p-2" 
-                onClick={handleDelete} 
+              <Button
+                variant="ghost"
+                className="text-red-500 hover:text-red-400 p-2"
+                onClick={handleDelete}
                 disabled={isDeleting}
               >
                 <Trash2 size={16} />
@@ -85,7 +85,10 @@ export function TeamCard({ team, onUpdate, onDelete }: TeamCardProps) {
       <div className="flex-1 p-6 bg-zinc-950/20">
         <div className="mb-4 flex items-center justify-between">
           <Typography as="p" emphasis="medium" className="text-xs">Disponibilidad del Equipo:</Typography>
-          <Badge color="blue">{tempAvailability.length} bloques marcados</Badge>
+          <Badge color="blue">
+            <Calendar size={11} />
+            {tempAvailability.length} bloques marcados
+          </Badge>
         </div>
         <BlockSelectionGrid
           selected={tempAvailability}

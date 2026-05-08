@@ -3,7 +3,7 @@
 import { Tutor, Assignment } from '@/types';
 import { Card, Typography, Badge, Avatar } from '@/components/ui';
 import { TutorWorkloadGrid } from '@/components/features/solver/grids';
-import { Mail } from 'lucide-react';
+import { Mail, Check, AlertCircle } from 'lucide-react';
 
 import { EntitySidebar } from '@/components/layout/EntitySidebar';
 
@@ -43,7 +43,17 @@ export function TutorWorkloadCard({ tutor, assignments, getTeamName }: TutorWork
 
         <div className="mt-8 pt-4 border-t border-zinc-800/50">
           <Badge color={assignments.length === tutor.max_sessions ? 'green' : 'blue'}>
-            {assignments.length === tutor.max_sessions ? 'Full' : 'Disponible'}
+            {assignments.length === tutor.max_sessions ? (
+              <>
+                <Check size={11} />
+                Full
+              </>
+            ) : (
+              <>
+                <AlertCircle size={11} />
+                Disponible
+              </>
+            )}
           </Badge>
         </div>
       </EntitySidebar>
