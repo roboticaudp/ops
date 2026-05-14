@@ -1,7 +1,7 @@
 'use client';
 
 import { Team, Tutor, Assignment, TIME_BLOCKS } from '@/types';
-import { Card, Typography, StatsPanel, StatsItem, Badge } from '@/components/ui';
+import { Card, Typography, StatsPanel, StatsItem, Badge, Alert, AlertDescription } from '@/components/ui';
 import { MiniAvailabilityGrid } from '@/components/features/solver/grids';
 import { analyzeFailureReason, DiagnosticType } from '@/lib/diagnostics';
 import { AlertTriangle, ShieldX, GitMerge, Info } from 'lucide-react';
@@ -15,35 +15,30 @@ interface FailureDiagnosisCardProps {
 const SEVERITY_CONFIG: Record<DiagnosticType, {
   label: string;
   icon: React.ElementType;
-  badgeClass: string;
   borderClass: string;
   bgClass: string;
 }> = {
   NO_TUTOR: {
     label: 'Crítico',
     icon: ShieldX,
-    badgeClass: 'text-red-400 bg-red-500/10 border-red-500/20',
     borderClass: 'border-red-900/40',
     bgClass: 'bg-red-950/10',
   },
   PHYSICAL_LIMIT: {
     label: 'Límite físico',
     icon: ShieldX,
-    badgeClass: 'text-red-400 bg-red-500/10 border-red-500/20',
     borderClass: 'border-red-900/40',
     bgClass: 'bg-red-950/10',
   },
   CAPACITY_LIMIT: {
     label: 'Sin cupo',
     icon: AlertTriangle,
-    badgeClass: 'text-amber-400 bg-amber-500/10 border-amber-500/20',
     borderClass: 'border-amber-500/20',
     bgClass: 'bg-amber-500/5',
   },
   COMPLEX_CONFLICT: {
     label: 'Conflicto',
     icon: GitMerge,
-    badgeClass: 'text-amber-400 bg-amber-500/10 border-amber-500/20',
     borderClass: 'border-amber-500/20',
     bgClass: 'bg-amber-500/5',
   },
@@ -85,15 +80,17 @@ export function FailureDiagnosisCard({ team, tutors, assignments }: FailureDiagn
         <Typography as="span" emphasis="medium" className="text-[11px] uppercase tracking-wider font-bold">
           Causa
         </Typography>
-        <div className={`text-xs px-3 py-2 rounded-lg border ${cfg.badgeClass} flex items-start gap-2`}>
-          <Info size={12} className="shrink-0 mt-0.5" />
-          <span>
-            {diagnostic.type === 'NO_TUTOR' && 'Ningún tutor tiene disponibilidad en los bloques marcados por este equipo.'}
-            {diagnostic.type === 'PHYSICAL_LIMIT' && 'Todos los bloques disponibles del equipo están al límite (4/4 equipos simultáneos).'}
-            {diagnostic.type === 'CAPACITY_LIMIT' && 'Hay tutores disponibles en horario, pero ya alcanzaron su cupo máximo semanal.'}
-            {diagnostic.type === 'COMPLEX_CONFLICT' && 'Los tutores compatibles ya están ocupados en esos bloques con otros equipos.'}
-          </span>
-        </div>
+        <Alert variant={diagnostic.type === 'NO_TUTOR' || diagnostic.type === 'PHYSICAL_LIMIT' ? 'error' : 'warning'}>
+          <AlertDescription className="flex items-start gap-2">
+            <Info size={14} />
+            <span>
+              {diagnostic.type === 'NO_TUTOR' && 'Ningún tutor tiene disponibilidad en los bloques marcados por este equipo.'}
+              {diagnostic.type === 'PHYSICAL_LIMIT' && 'Todos los bloques disponibles del equipo están al límite (4/4 equipos simultáneos).'}
+              {diagnostic.type === 'CAPACITY_LIMIT' && 'Hay tutores disponibles en horario, pero ya alcanzaron su cupo máximo semanal.'}
+              {diagnostic.type === 'COMPLEX_CONFLICT' && 'Los tutores compatibles ya están ocupados en esos bloques con otros equipos.'}
+            </span>
+          </AlertDescription>
+        </Alert>
       </div>
 
       {/* Hints accionables: qué tutor + en qué bloques */}

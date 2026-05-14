@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useCompetition } from '@/lib/context/CompetitionContext';
 import { CompetitionService } from '@/services/competition.service';
-import { Card, Typography, Button, Alert, Badge, Skeleton } from '@/components/ui';
+import { Card, Typography, Button, Alert, AlertTitle, AlertDescription, Badge, Skeleton } from '@/components/ui';
 import { Plus, Trash2, Calendar, CheckCircle2, XCircle, Settings2, Trophy } from 'lucide-react';
 import { Competition } from '@/types';
 
@@ -95,8 +95,9 @@ export default function SettingsCompetitionsPage() {
     <div className="space-y-8 pb-20">
 
       {error && (
-        <Alert variant="error" title="Error">
-          {error}
+        <Alert variant="error">
+          <AlertTitle>Error</AlertTitle>
+          <AlertDescription>{error}</AlertDescription>
         </Alert>
       )}
 

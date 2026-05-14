@@ -4,6 +4,7 @@ import { Team, Tutor, Assignment } from '@/types';
 import { FailureDiagnosisCard } from '@/components/features/solver/FailureDiagnosisCard';
 import { analyzeFailureReason } from '@/lib/diagnostics';
 import { ShieldX, AlertTriangle, GitMerge, CheckCircle2 } from 'lucide-react';
+import { StatusCard, StatusCardValue, StatusCardDescription } from '@/components/ui';
 
 interface UnassignedTeamsSectionProps {
   teams: Team[];
@@ -45,27 +46,20 @@ export function UnassignedTeamsSection({
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-3 gap-3">
-        <div className="flex items-center gap-3 px-4 py-3 bg-red-950/20 border border-red-900/30 rounded-xl">
-          <ShieldX size={18} className="text-red-400 shrink-0" />
-          <div>
-            <p className="text-xl font-bold text-red-300">{critical}</p>
-            <p className="text-[10px] text-red-600 font-medium">Sin solución directa</p>
-          </div>
-        </div>
-        <div className="flex items-center gap-3 px-4 py-3 bg-amber-950/20 border border-amber-900/30 rounded-xl">
-          <AlertTriangle size={18} className="text-amber-400 shrink-0" />
-          <div>
-            <p className="text-xl font-bold text-amber-300">{capacityIssues}</p>
-            <p className="text-[10px] text-amber-600 font-medium">Aumentar cupo de tutor</p>
-          </div>
-        </div>
-        <div className="flex items-center gap-3 px-4 py-3 bg-zinc-900/40 border border-zinc-800 rounded-xl">
-          <GitMerge size={18} className="text-zinc-400 shrink-0" />
-          <div>
-            <p className="text-xl font-bold text-zinc-300">{conflicts}</p>
-            <p className="text-[10px] text-zinc-600 font-medium">Conflicto de horarios</p>
-          </div>
-        </div>
+        <StatusCard variant="red" icon={ShieldX}>
+          <StatusCardValue>{critical}</StatusCardValue>
+          <StatusCardDescription>Sin solución directa</StatusCardDescription>
+        </StatusCard>
+
+        <StatusCard variant="amber" icon={AlertTriangle}>
+          <StatusCardValue>{capacityIssues}</StatusCardValue>
+          <StatusCardDescription>Aumentar cupo de tutor</StatusCardDescription>
+        </StatusCard>
+
+        <StatusCard variant="zinc" icon={GitMerge}>
+          <StatusCardValue>{conflicts}</StatusCardValue>
+          <StatusCardDescription>Conflicto de horarios</StatusCardDescription>
+        </StatusCard>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">

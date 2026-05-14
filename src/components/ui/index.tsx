@@ -14,3 +14,4 @@ export * from './icons/Google';
 export * from './DropdownMenu';
 export * from './Legend';
 export * from './StatsPanel';
+export * from './StatusCard';

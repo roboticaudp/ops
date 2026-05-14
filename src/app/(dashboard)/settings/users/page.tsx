@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Card, Typography, Button, Alert, Badge, Skeleton } from '@/components/ui';
+import { Card, Typography, Button, Alert, AlertTitle, AlertDescription, Badge, Skeleton } from '@/components/ui';
 import { Trash2, Mail, ShieldCheck, UserPlus } from 'lucide-react';
 import { useAllowedUsers } from '@/lib/hooks/useAllowedUsers';
 
@@ -28,8 +28,9 @@ export default function SettingsUsersPage() {
     <div className="space-y-8 pb-20">
 
       {error && (
-        <Alert variant="error" title="Error">
-          {error}
+        <Alert variant="error">
+          <AlertTitle>Error</AlertTitle>
+          <AlertDescription>{error}</AlertDescription>
         </Alert>
       )}
 
