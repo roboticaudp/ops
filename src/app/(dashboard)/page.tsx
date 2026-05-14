@@ -2,7 +2,7 @@ import { dehydrate, HydrationBoundary, QueryClient } from '@tanstack/react-query
 import { createSupabaseServer } from '@/lib/supabase-server';
 import { CompetitionService } from '@/services/competition.service';
 import { QUERY_KEYS } from '@/lib/hooks/useQueries';
-import { SchedulingPageClient } from './SchedulingPageClient';
+import { SchedulingView } from '@/components/features/scheduling/SchedulingView';
 
 export default async function SchedulingPage() {
   const queryClient = new QueryClient();
@@ -26,7 +26,7 @@ export default async function SchedulingPage() {
 
   return (
     <HydrationBoundary state={dehydrate(queryClient)}>
-      <SchedulingPageClient />
+      <SchedulingView />
     </HydrationBoundary>
   );
 }

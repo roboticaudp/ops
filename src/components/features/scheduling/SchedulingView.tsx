@@ -17,7 +17,7 @@ const MainAssignmentGrid = dynamic(() => import('@/components/features/solver').
 const SpareCapacityGrid = dynamic(() => import('@/components/features/solver').then(m => m.SpareCapacityGrid));
 const UnassignedTeamsSection = dynamic(() => import('@/components/features/solver').then(m => m.UnassignedTeamsSection));
 
-export function SchedulingPageClient() {
+export function SchedulingView() {
   const {
     activeCompetition,
     data: { teams, tutors, solverResult, assignmentsByTutor },
