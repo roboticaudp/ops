@@ -45,7 +45,7 @@ export function UnassignedTeamsSection({
 
   return (
     <div className="space-y-6">
-      <div className="grid grid-cols-3 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 md:gap-4">
         <StatusCard variant="red" icon={ShieldX}>
           <StatusCardValue>{critical}</StatusCardValue>
           <StatusCardDescription>Sin solución directa</StatusCardDescription>
@@ -62,7 +62,7 @@ export function UnassignedTeamsSection({
         </StatusCard>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
         {unassignedTeamDetails.map(team => (
           <FailureDiagnosisCard
             key={team.id}
