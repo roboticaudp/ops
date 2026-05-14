@@ -1,35 +1,29 @@
 'use client';
 
-import { useState } from 'react';
 import { Tutor, Assignment } from '@/types';
 import { Card, Typography, Badge, Avatar, Counter, Button } from '@/components/ui';
 import { BlockSelectionGrid } from '@/components/features/solver/grids';
 import { Mail, Calendar, Users, Save, RefreshCcw } from 'lucide-react';
 import { EntitySidebar } from '@/components/layout/EntitySidebar';
+import { useEntityEditor } from '@/lib/hooks';
 
 export function TutorCard({ tutor, assignments, onUpdate }: { tutor: Tutor, assignments: Assignment[], onUpdate?: (id: string, updates: Partial<Tutor>) => Promise<boolean> }) {
-  const [tempAvailability, setTempAvailability] = useState(tutor.availability);
-  const [tempCapacity, setTempCapacity] = useState(tutor.max_sessions);
-  const [loading, setLoading] = useState(false);
-
-  const hasChanges =
-    JSON.stringify(tempAvailability) !== JSON.stringify(tutor.availability) ||
-    tempCapacity !== tutor.max_sessions;
-
-  const handleSave = async () => {
-    if (!onUpdate) return;
-    setLoading(true);
-    try {
-      await onUpdate(tutor.id, { availability: tempAvailability, max_sessions: tempCapacity });
-    } finally {
-      setLoading(false);
+  // Usamos el nuevo hook para manejar toda la lógica de edición (disponibilidad y capacidad)
+  const { 
+    tempData: tempTutor, 
+    updateField, 
+    hasChanges, 
+    isSaving: loading, 
+    save: handleSave, 
+    reset: handleReset 
+  } = useEntityEditor(tutor, async (updatedTutor) => {
+    if (onUpdate) {
+      return await onUpdate(tutor.id, { 
+        availability: updatedTutor.availability, 
+        max_sessions: updatedTutor.max_sessions 
+      });
     }
-  };
-
-  const handleReset = () => {
-    setTempAvailability(tutor.availability);
-    setTempCapacity(tutor.max_sessions);
-  };
+  });
 
   return (
     <Card className="flex flex-col xl:flex-row gap-8 p-0 overflow-hidden border-zinc-800/50 bg-zinc-900/20">
@@ -49,14 +43,14 @@ export function TutorCard({ tutor, assignments, onUpdate }: { tutor: Tutor, assi
               <Typography as="p" emphasis="medium" className="text-[10px]">Configuración de Carga</Typography>
 
               <Counter
-                value={tempCapacity}
-                onChange={setTempCapacity}
+                value={tempTutor.max_sessions}
+                onChange={(val) => updateField('max_sessions', val)}
                 label="Máximo"
               />
 
               <div className="pt-3 border-t border-zinc-900 flex justify-between items-center px-1">
                 <Typography as="p" emphasis="medium" className="text-[10px]">Actual:</Typography>
-                <Badge color={assignments.length > tempCapacity ? 'green' : 'blue'}>
+                <Badge color={assignments.length > tempTutor.max_sessions ? 'green' : 'blue'}>
                   <Users size={11} />
                   {assignments.length} asignados
                 </Badge>
@@ -93,12 +87,12 @@ export function TutorCard({ tutor, assignments, onUpdate }: { tutor: Tutor, assi
           <Typography as="p" emphasis="medium" className="text-xs">Disponibilidad Semanal</Typography>
           <Badge color="blue">
             <Calendar size={11} />
-            {tempAvailability.length} bloques activos
+            {tempTutor.availability.length} bloques activos
           </Badge>
         </div>
         <BlockSelectionGrid
-          selected={tempAvailability}
-          onChange={setTempAvailability}
+          selected={tempTutor.availability}
+          onChange={(newVal) => updateField('availability', newVal)}
         />
       </div>
     </Card>

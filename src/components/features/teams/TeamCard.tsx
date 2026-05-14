@@ -6,6 +6,7 @@ import { Card, Typography, Avatar, Badge, Button } from '@/components/ui';
 import { Trash2, Calendar, Save, RefreshCcw } from 'lucide-react';
 import { EntitySidebar } from '@/components/layout/EntitySidebar';
 import { BlockSelectionGrid } from '@/components/features/solver/grids';
+import { useEntityEditor } from '@/lib/hooks';
 
 interface TeamCardProps {
   team: Team;
@@ -14,25 +15,21 @@ interface TeamCardProps {
 }
 
 export function TeamCard({ team, onUpdate, onDelete }: TeamCardProps) {
-  const [loading, setLoading] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
-  const [tempAvailability, setTempAvailability] = useState(team.availability);
 
-  const hasChanges = JSON.stringify(tempAvailability) !== JSON.stringify(team.availability);
-
-  const handleSave = async () => {
-    if (!onUpdate) return;
-    setLoading(true);
-    try {
-      await onUpdate(team.id, { availability: tempAvailability });
-    } finally {
-      setLoading(false);
+  // Usamos el nuevo hook para manejar toda la lógica de edición
+  const { 
+    tempData: tempTeam, 
+    updateField, 
+    hasChanges, 
+    isSaving: loading, 
+    save: handleSave, 
+    reset: handleReset 
+  } = useEntityEditor(team, async (updatedTeam) => {
+    if (onUpdate) {
+      return await onUpdate(team.id, { availability: updatedTeam.availability });
     }
-  };
-
-  const handleReset = () => {
-    setTempAvailability(team.availability);
-  };
+  });
 
   const handleDelete = async () => {
     if (!onDelete) return;
@@ -101,12 +98,12 @@ export function TeamCard({ team, onUpdate, onDelete }: TeamCardProps) {
           <Typography as="p" emphasis="medium" className="text-xs">Disponibilidad del Equipo:</Typography>
           <Badge color="blue">
             <Calendar size={11} />
-            {tempAvailability.length} bloques marcados
+            {tempTeam.availability.length} bloques marcados
           </Badge>
         </div>
         <BlockSelectionGrid
-          selected={tempAvailability}
-          onChange={setTempAvailability}
+          selected={tempTeam.availability}
+          onChange={(newVal) => updateField('availability', newVal)}
         />
       </div>
     </Card>
