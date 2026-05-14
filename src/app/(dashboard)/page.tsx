@@ -1,132 +1,87 @@
 'use client';
 
-import { useEffect, useState, useCallback, useRef, useMemo } from 'react';
+import { useState, useCallback, useRef, useMemo, useEffect } from 'react';
 import { Day, Team, Tutor, Assignment } from '@/types';
 import { SolverResult } from '@/lib';
 import { TutorWorkloadCard } from '@/components/features/tutors/TutorWorkloadCard';
 import { SpareCapacityGrid, MainAssignmentGrid, UnassignedTeamsSection } from '@/components/features/solver';
 import { useCompetition } from '@/lib/context/CompetitionContext';
 import { Typography, Badge, Button, DropMenu, DropMenuItem } from '@/components/ui';
-import { Lock, Unlock, Download, AlertCircle, CheckCircle, ChevronUp, FileSpreadsheet, FileText } from 'lucide-react';
+import { Lock, Unlock, Download, AlertCircle, CheckCircle, ChevronUp, FileSpreadsheet, FileText, Loader2 } from 'lucide-react';
 import { buildExportRows, downloadCSV, exportToGridExcel } from '@/lib/export';
-import { TeamService } from '@/services/team.service';
-import { TutorService } from '@/services/tutor.service';
-import { CompetitionService } from '@/services/competition.service';
+import { useCompetitionData, useSaveAssignmentsState } from '@/lib/hooks/useQueries';
 
 const DAYS: Day[] = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
 
 export default function SchedulingPage() {
   const { activeCompetition } = useCompetition();
-  const [state, setState] = useState({
-    result: null as SolverResult | null,
-    loading: false,
-    teams: [] as Team[],
-    tutors: [] as Tutor[],
-    fixedAssignments: [] as Assignment[]
-  });
+  const { teams, tutors, assignments, isLoading: isDataLoading } = useCompetitionData(activeCompetition?.id);
+  const saveAssignments = useSaveAssignmentsState();
+
+  const [solverResult, setSolverResult] = useState<SolverResult | null>(null);
+  const [isSolving, setIsSolving] = useState(false);
 
   const workerRef = useRef<Worker | null>(null);
 
-  const startSolverWorker = useCallback((teamsData: Team[], tutorsData: Tutor[], fixed: Assignment[]) => {
+  const startSolverWorker = useCallback(() => {
+    if (!teams.length || !tutors.length) return;
+
+    setIsSolving(true);
     workerRef.current?.terminate();
     const worker = new Worker(new URL('../../workers/solver.worker.ts', import.meta.url));
     workerRef.current = worker;
+
     worker.onmessage = (e: MessageEvent<SolverResult>) => {
-      setState(prev => ({ ...prev, result: e.data, loading: false }));
+      setSolverResult(e.data);
+      setIsSolving(false);
     };
-    worker.postMessage({ teams: teamsData, tutors: tutorsData, fixedAssignments: fixed });
-  }, []);
+
+    const fixed = assignments.filter(a => !!a.is_fixed);
+    worker.postMessage({ teams, tutors, fixedAssignments: fixed });
+  }, [teams, tutors, assignments]);
 
   useEffect(() => {
-    let mounted = true;
-    if (activeCompetition) {
-      setState(prev => ({ ...prev, loading: true }));
-      Promise.all([
-        TeamService.getByCompetition(activeCompetition.id),
-        TutorService.getByCompetition(activeCompetition.id),
-        CompetitionService.getAssignmentsState(activeCompetition.id)
-      ]).then(([fetchedTeams, fetchedTutors, fetchedAssignments]) => {
-        if (!mounted) return;
-
-        const fixed = fetchedAssignments.filter(a => !!a.is_fixed);
-
-        setState(prev => ({
-          ...prev,
-          teams: fetchedTeams,
-          tutors: fetchedTutors,
-          fixedAssignments: fixed
-        }));
-
-        if (fetchedTeams.length > 0 && fetchedTutors.length > 0) {
-          startSolverWorker(fetchedTeams, fetchedTutors, fixed);
-        } else {
-          setState(prev => ({ ...prev, result: null, loading: false }));
-        }
-      });
-    }
-    return () => { mounted = false; };
-  }, [activeCompetition, startSolverWorker]);
+    startSolverWorker();
+    return () => workerRef.current?.terminate();
+  }, [startSolverWorker]);
 
   const toggleAssignmentFixed = async (assignment: Assignment) => {
-    if (!activeCompetition || !state.result) return;
+    if (!activeCompetition || !solverResult) return;
 
     const isNowFixed = !assignment.is_fixed;
-
-    const updatedAssignments = state.result.assignments.map(a =>
+    const updatedAssignments = solverResult.assignments.map(a =>
       a.team_id === assignment.team_id ? { ...a, is_fixed: isNowFixed } : a
     );
 
-    const newFixed = updatedAssignments.filter(a => !!a.is_fixed);
-    setState(prev => ({ ...prev, fixedAssignments: newFixed }));
-
-    await CompetitionService.saveAssignmentsState(activeCompetition.id, updatedAssignments);
-    startSolverWorker(state.teams, state.tutors, newFixed);
+    await saveAssignments.mutateAsync({
+      competitionId: activeCompetition.id,
+      assignments: updatedAssignments
+    });
   };
 
   const fixAllAssignments = async () => {
-    if (!state.result || !activeCompetition) return;
-
-    const allFixed = state.result.assignments.map(a => ({ ...a, is_fixed: true }));
-    setState(prev => ({ ...prev, fixedAssignments: allFixed, loading: true }));
-
-    await CompetitionService.saveAssignmentsState(activeCompetition.id, allFixed);
-    setState(prev => ({ ...prev, loading: false }));
-
-    startSolverWorker(state.teams, state.tutors, allFixed);
+    if (!solverResult || !activeCompetition) return;
+    const allFixed = solverResult.assignments.map(a => ({ ...a, is_fixed: true }));
+    await saveAssignments.mutateAsync({ competitionId: activeCompetition.id, assignments: allFixed });
   };
 
   const unfixAllAssignments = async () => {
-    if (!state.result || !activeCompetition) return;
-
-    const allUnfixed = state.result.assignments.map(a => ({ ...a, is_fixed: false }));
-    setState(prev => ({ ...prev, fixedAssignments: [], loading: true }));
-
-    await CompetitionService.saveAssignmentsState(activeCompetition.id, allUnfixed);
-    setState(prev => ({ ...prev, loading: false }));
-
-    startSolverWorker(state.teams, state.tutors, []);
+    if (!solverResult || !activeCompetition) return;
+    const allUnfixed = solverResult.assignments.map(a => ({ ...a, is_fixed: false }));
+    await saveAssignments.mutateAsync({ competitionId: activeCompetition.id, assignments: allUnfixed });
   };
 
-  const teamNamesMap = useMemo(() => {
-    const map = new Map<string, string>();
-    state.teams.forEach(t => map.set(t.id, t.name));
-    return map;
-  }, [state.teams]);
-
-  const tutorNamesMap = useMemo(() => {
-    const map = new Map<string, string>();
-    state.tutors.forEach(t => map.set(t.id, t.name));
-    return map;
-  }, [state.tutors]);
+  const teamNamesMap = useMemo(() => new Map<string, string>(teams.map((t: Team) => [t.id, t.name])), [teams]);
+  const tutorNamesMap = useMemo(() => new Map<string, string>(tutors.map((t: Tutor) => [t.id, t.name])), [tutors]);
 
   const assignmentsByTutor = useMemo(() => {
     const map = new Map<string, Assignment[]>();
-    state.result?.assignments.forEach(a => {
+    solverResult?.assignments.forEach(a => {
       const current = map.get(a.tutor_id) || [];
       map.set(a.tutor_id, [...current, a]);
     });
     return map;
-  }, [state.result?.assignments]);
+  }, [solverResult?.assignments]);
 
   const getTeamName = useCallback((id: string) => teamNamesMap.get(id) || id, [teamNamesMap]);
   const getTutorName = useCallback((id: string) => tutorNamesMap.get(id) || id, [tutorNamesMap]);
@@ -139,14 +94,24 @@ export default function SchedulingPage() {
     );
   }
 
-  const { result, loading, teams, tutors } = state;
+  if (isDataLoading) {
+    return (
+      <div className="flex flex-col items-center justify-center py-20 gap-4">
+        <Loader2 className="animate-spin text-blue-500" size={40} />
+        <Typography as="p" emphasis="medium">Cargando datos de la competencia...</Typography>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-12">
       <header className="mb-10">
-        <Typography as="h1" className="text-5xl lg:text-6xl font-bold mb-3">
-          {activeCompetition?.name}
-        </Typography>
+        <div className="flex items-center gap-4 mb-3">
+          <Typography as="h1" className="text-5xl lg:text-6xl font-bold">
+            {activeCompetition?.name}
+          </Typography>
+          {isSolving && <Badge color="blue" className="animate-pulse">Calculando óptimo...</Badge>}
+        </div>
         <Typography as="p" emphasis="medium">
           Gestión de asignaciones y disponibilidad de la competencia.
         </Typography>
@@ -154,7 +119,7 @@ export default function SchedulingPage() {
 
       <section className="pt-12">
         <div className="flex justify-end gap-3 mb-4">
-          {result && (
+          {solverResult && (
             <>
               <div className="group relative">
                 <Button
@@ -171,7 +136,7 @@ export default function SchedulingPage() {
                     icon={FileSpreadsheet}
                     onClick={() => {
                       const name = activeCompetition?.name?.replace(/\s+/g, '_') || 'asignaciones';
-                      exportToGridExcel(result.assignments, teams, tutors, `${name}_plantilla.xlsx`);
+                      exportToGridExcel(solverResult.assignments, teams, tutors, `${name}_plantilla.xlsx`);
                     }}
                   >
                     Plantilla (Excel)
@@ -179,7 +144,7 @@ export default function SchedulingPage() {
                   <DropMenuItem
                     icon={FileText}
                     onClick={() => {
-                      const rows = buildExportRows(result.assignments, teams, tutors);
+                      const rows = buildExportRows(solverResult.assignments, teams, tutors);
                       const name = activeCompetition?.name?.replace(/\s+/g, '_') || 'asignaciones';
                       downloadCSV(rows, `${name}_asignaciones.csv`);
                     }}
@@ -191,6 +156,7 @@ export default function SchedulingPage() {
               <Button
                 variant="outline"
                 onClick={unfixAllAssignments}
+                disabled={saveAssignments.isPending}
                 className="flex items-center gap-2"
               >
                 <Unlock size={14} />
@@ -198,9 +164,10 @@ export default function SchedulingPage() {
               </Button>
               <Button
                 onClick={fixAllAssignments}
+                disabled={saveAssignments.isPending}
                 className="flex items-center gap-2"
               >
-                <Lock size={14} />
+                {saveAssignments.isPending ? <Loader2 className="animate-spin" size={14} /> : <Lock size={14} />}
                 Fijar todas las asignaciones
               </Button>
             </>
@@ -208,7 +175,7 @@ export default function SchedulingPage() {
         </div>
 
         <MainAssignmentGrid
-          assignments={result?.assignments || []}
+          assignments={solverResult?.assignments || []}
           getTeamName={getTeamName}
           getTutorName={getTutorName}
           onToggleFixed={toggleAssignmentFixed}
@@ -218,20 +185,16 @@ export default function SchedulingPage() {
       <section className="pt-12">
         <header className="mb-10">
           <Typography as="h2">Equipos sin Asignación</Typography>
-          <Badge color={(result?.unassignedTeams?.length ?? 0) > 0 ? 'red' : 'green'}>
-            {(result?.unassignedTeams?.length ?? 0) > 0 ? (
-              <AlertCircle size={11} />
-            ) : (
-              <CheckCircle size={11} />
-            )}
-            {result?.unassignedTeams?.length ?? 0} equipos
+          <Badge color={(solverResult?.unassignedTeams?.length ?? 0) > 0 ? 'red' : 'green'}>
+            {(solverResult?.unassignedTeams?.length ?? 0) > 0 ? <AlertCircle size={11} /> : <CheckCircle size={11} />}
+            {solverResult?.unassignedTeams?.length ?? 0} equipos
           </Badge>
         </header>
         <UnassignedTeamsSection
           teams={teams}
           tutors={tutors}
-          unassignedTeamNames={result?.unassignedTeams || []}
-          assignments={result?.assignments || []}
+          unassignedTeamNames={solverResult?.unassignedTeams || []}
+          assignments={solverResult?.assignments || []}
         />
       </section>
 
@@ -240,19 +203,16 @@ export default function SchedulingPage() {
           <Typography as="h2">Mapa de Disponibilidad Remanente</Typography>
           <Typography as="p" emphasis="medium">Bloques con tutores que tienen cupos libres y están disponibles.</Typography>
         </header>
-
-        <SpareCapacityGrid tutors={tutors} teams={teams} assignments={result?.assignments || []} />
+        <SpareCapacityGrid tutors={tutors} teams={teams} assignments={solverResult?.assignments || []} />
       </section>
 
       <section className="pt-12">
         <header className="mb-10">
           <Typography as="h2">Resumen de Carga de Tutores</Typography>
-          <Typography as="p" emphasis="medium">
-            Visualización de la carga de trabajo de cada tutor en la competencia.
-          </Typography>
+          <Typography as="p" emphasis="medium">Visualización de la carga de trabajo de cada tutor.</Typography>
         </header>
         <div className="flex flex-col gap-8">
-          {tutors.map(t => (
+          {tutors.map((t: Tutor) => (
             <TutorWorkloadCard
               key={t.id}
               tutor={t}

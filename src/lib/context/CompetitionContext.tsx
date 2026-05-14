@@ -2,7 +2,7 @@
 
 import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
 import { Competition } from '@/types';
-import { CompetitionService } from '@/services/competition.service';
+import { useCompetitions } from '../hooks/useQueries';
 
 interface CompetitionState {
   activeCompetition: Competition | null;
@@ -19,45 +19,32 @@ const CompetitionStateContext = createContext<CompetitionState | undefined>(unde
 const CompetitionActionsContext = createContext<CompetitionActions | undefined>(undefined);
 
 export function CompetitionProvider({ children }: { children: React.ReactNode }) {
-  const [competitions, setCompetitions] = useState<Competition[]>([]);
+  const { data: competitions = [], isLoading, refetch } = useCompetitions();
   const [activeCompetition, setActiveCompetition] = useState<Competition | null>(null);
-  const [loading, setLoading] = useState(true);
 
-  const loadData = useCallback(async () => {
-    try {
-      const all = await CompetitionService.getAll();
-      setCompetitions(all);
-      
-      setActiveCompetition(prev => {
-        if (!prev) return all.find(c => c.status === 'active') || all.find(c => c.was_held) || null;
-        return all.find(c => c.id === prev.id) || null;
-      });
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
+  // Sincronizar la competencia activa cuando se cargan los datos
   useEffect(() => {
-    loadData();
-  }, [loadData]);
+    if (competitions.length > 0 && !activeCompetition) {
+      const active = competitions.find(c => c.status === 'active') || competitions.find(c => c.was_held) || competitions[0];
+      setActiveCompetition(active);
+    }
+  }, [competitions, activeCompetition]);
 
   const selectCompetition = useCallback((id: string) => {
-    setActiveCompetition(prev => {
-      const comp = competitions.find(c => c.id === id);
-      return comp || prev;
-    });
+    const comp = competitions.find(c => c.id === id);
+    if (comp) setActiveCompetition(comp);
   }, [competitions]);
 
   const stateValue = useMemo(() => ({
     activeCompetition,
     competitions,
-    loading
-  }), [activeCompetition, competitions, loading]);
+    loading: isLoading
+  }), [activeCompetition, competitions, isLoading]);
 
   const actionsValue = useMemo(() => ({
     selectCompetition,
-    refreshCompetitions: loadData
-  }), [selectCompetition, loadData]);
+    refreshCompetitions: async () => { await refetch(); }
+  }), [selectCompetition, refetch]);
 
   return (
     <CompetitionStateContext.Provider value={stateValue}>
