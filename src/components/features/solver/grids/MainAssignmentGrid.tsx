@@ -1,8 +1,8 @@
 'use client';
 
 import type { Assignment, Block } from '@/types';
-import { Calendar } from '@/components/ui';
-import { AssignmentGridCell } from '@/components/features/solver/grids/cells/AssignmentGridCell';
+import { Calendar, Badge, CalendarBlock } from '@/components/ui';
+import { AssignmentItem } from '@/components/features/scheduling/AssignmentItem';
 
 interface MainAssignmentGridProps {
   assignments: Assignment[];
@@ -19,16 +19,37 @@ export function MainAssignmentGrid({
 }: MainAssignmentGridProps) {
   return (
     <Calendar
-      renderBlock={(block: Block) => (
-        <AssignmentGridCell
-          key={block.id}
-          block={block}
-          assignments={assignments.filter(a => a.block_id === block.id)}
-          getTeamName={getTeamName}
-          getTutorName={getTutorName}
-          onToggleFixed={onToggleFixed}
-        />
-      )}
+      renderBlock={(block: Block) => {
+        const blockAssignments = assignments.filter(a => a.block_id === block.id);
+        const isFull = blockAssignments.length >= 4;
+        const hasAssignments = blockAssignments.length > 0;
+
+        return (
+          <CalendarBlock
+            key={block.id}
+            time={block.startTime}
+            variant={hasAssignments ? 'active' : 'inactive'}
+            badge={<Badge color={isFull ? 'green' : 'blue'}>{blockAssignments.length}/4</Badge>}
+          >
+            <div className="space-y-0.5">
+              {blockAssignments.map((a, i) => (
+                <AssignmentItem
+                  key={i}
+                  teamName={getTeamName(a.team_id)}
+                  tutorName={getTutorName(a.tutor_id)}
+                  isFixed={a.is_fixed}
+                  onToggle={() => onToggleFixed(a)}
+                />
+              ))}
+              {!hasAssignments && (
+                <div className="py-4 text-center border border-dashed border-zinc-800/50 rounded-lg">
+                  <p className="text-xs font-bold text-zinc-700">Libre</p>
+                </div>
+              )}
+            </div>
+          </CalendarBlock>
+        );
+      }}
     />
   );
 }
