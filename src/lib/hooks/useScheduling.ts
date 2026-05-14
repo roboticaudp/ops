@@ -1,52 +1,25 @@
-'use client';
-
-import { useState, useCallback, useRef, useMemo, useEffect } from 'react';
-import { Team, Tutor, Assignment } from '@/types';
-import { SolverResult } from '@/lib';
+import { useCallback } from 'react';
+import { Assignment } from '@/types';
 import { useCompetition } from '@/lib/context/CompetitionContext';
 import { useCompetitionData, useSaveAssignmentsState } from './useQueries';
+import { useSolver } from './useSolver';
+import { useSchedulingData } from './useSchedulingData';
 
 export function useScheduling() {
   const { activeCompetition } = useCompetition();
   
-  // 1. Datos de Red
+  // 1. Datos y Mutaciones
   const { teams, tutors, assignments, isLoading: isDataLoading } = useCompetitionData(activeCompetition?.id);
   const saveAssignments = useSaveAssignmentsState();
 
-  // 2. Estado del Solver
-  const [solverResult, setSolverResult] = useState<SolverResult | null>(null);
-  const [isSolving, setIsSolving] = useState(false);
-  const workerRef = useRef<Worker | null>(null);
+  // 2. Lógica del Solver (Web Worker)
+  const { solverResult, isSolving } = useSolver(teams, tutors, assignments);
 
-  // 3. Lógica del Worker
-  const startSolverWorker = useCallback(() => {
-    if (!teams.length || !tutors.length) return;
-
-    setIsSolving(true);
-    workerRef.current?.terminate();
-    const worker = new Worker(new URL('../../workers/solver.worker.ts', import.meta.url));
-    workerRef.current = worker;
-
-    worker.onmessage = (e: MessageEvent<SolverResult>) => {
-      setSolverResult(e.data);
-      setIsSolving(false);
-    };
-
-    const fixed = assignments.filter(a => !!a.is_fixed);
-    worker.postMessage({ teams, tutors, fixedAssignments: fixed });
-  }, [teams, tutors, assignments]);
-
-  useEffect(() => {
-    const hasData = teams.length > 0 && tutors.length > 0;
-    if (hasData) {
-      // Usamos una microtarea para evitar el aviso de renderizado en cascada síncrono
-      queueMicrotask(() => startSolverWorker());
-    }
-    return () => workerRef.current?.terminate();
-  }, [startSolverWorker, teams.length, tutors.length]);
+  // 3. Utilidades y Formateo
+  const { utils } = useSchedulingData(teams, tutors, solverResult?.assignments || []);
 
   // 4. Acciones (Handlers)
-  const toggleFixed = async (assignment: Assignment) => {
+  const toggleFixed = useCallback(async (assignment: Assignment) => {
     if (!activeCompetition || !solverResult) return;
 
     const isNowFixed = !assignment.is_fixed;
@@ -58,35 +31,19 @@ export function useScheduling() {
       competitionId: activeCompetition.id, 
       assignments: updatedAssignments 
     });
-  };
+  }, [activeCompetition, solverResult, saveAssignments]);
 
-  const fixAll = async () => {
+  const fixAll = useCallback(async () => {
     if (!solverResult || !activeCompetition) return;
     const allFixed = solverResult.assignments.map(a => ({ ...a, is_fixed: true }));
     await saveAssignments.mutateAsync({ competitionId: activeCompetition.id, assignments: allFixed });
-  };
+  }, [activeCompetition, solverResult, saveAssignments]);
 
-  const unfixAll = async () => {
+  const unfixAll = useCallback(async () => {
     if (!solverResult || !activeCompetition) return;
     const allUnfixed = solverResult.assignments.map(a => ({ ...a, is_fixed: false }));
     await saveAssignments.mutateAsync({ competitionId: activeCompetition.id, assignments: allUnfixed });
-  };
-
-  // 5. Utilidades y Formateo
-  const teamNamesMap = useMemo(() => new Map<string, string>(teams.map((t: Team) => [t.id, t.name])), [teams]);
-  const tutorNamesMap = useMemo(() => new Map<string, string>(tutors.map((t: Tutor) => [t.id, t.name])), [tutors]);
-
-  const assignmentsByTutor = useMemo(() => {
-    const map = new Map<string, Assignment[]>();
-    solverResult?.assignments.forEach(a => {
-      const current = map.get(a.tutor_id) || [];
-      map.set(a.tutor_id, [...current, a]);
-    });
-    return map;
-  }, [solverResult?.assignments]);
-
-  const getTeamName = useCallback((id: string) => teamNamesMap.get(id) || id, [teamNamesMap]);
-  const getTutorName = useCallback((id: string) => tutorNamesMap.get(id) || id, [tutorNamesMap]);
+  }, [activeCompetition, solverResult, saveAssignments]);
 
   return {
     activeCompetition,
@@ -94,7 +51,7 @@ export function useScheduling() {
       teams,
       tutors,
       solverResult,
-      assignmentsByTutor
+      assignmentsByTutor: utils.assignmentsByTutor
     },
     status: {
       isLoading: isDataLoading,
@@ -107,8 +64,8 @@ export function useScheduling() {
       unfixAll
     },
     utils: {
-      getTeamName,
-      getTutorName
+      getTeamName: utils.getTeamName,
+      getTutorName: utils.getTutorName
     }
   };
 }

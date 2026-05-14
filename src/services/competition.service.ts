@@ -1,6 +1,6 @@
 import { supabase as defaultClient } from '@/lib/supabase';
 import { SupabaseClient } from '@supabase/supabase-js';
-import { Competition, Assignment } from '@/types';
+import { Competition, Assignment, Team, Tutor } from '@/types';
 import { competitionSchema } from '@/lib/validations';
 import { handleServiceError } from '@/lib/errors';
 import { TABLES, COLUMNS, SELECTS } from '@/lib/database.constants';
@@ -74,6 +74,23 @@ export const CompetitionService = {
     
     if (error && error.code !== 'PGRST116') handleServiceError(error);
     return (data?.assignments_state as Assignment[]) || [];
+  },
+
+  async getBootstrapData(id: string, supabase: SupabaseClient = defaultClient) {
+    const { data, error } = await supabase
+      .from(TABLES.COMPETITIONS)
+      .select(SELECTS.COMPETITION_WITH_DATA)
+      .eq(COLUMNS.COMPETITIONS.ID, id)
+      .single();
+
+    if (error) handleServiceError(error);
+
+    return {
+      competition: data as Competition,
+      teams: (data?.teams || []) as Team[],
+      tutors: (data?.tutors || []) as Tutor[],
+      assignments: (data?.assignments_state || []) as Assignment[]
+    };
   },
 
   async saveAssignmentsState(id: string, assignments: Assignment[], supabase: SupabaseClient = defaultClient) {
