@@ -6,8 +6,8 @@ import { Skeleton } from '@/components/ui';
 
 export function YearsBar() {
   const { competitions, activeCompetition, selectCompetition, loading } = useCompetition();
-  
-  const sorted = useMemo(() => 
+
+  const sorted = useMemo(() =>
     [...competitions].sort((a, b) => a.year - b.year),
     [competitions]
   );

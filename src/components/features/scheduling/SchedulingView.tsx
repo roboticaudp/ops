@@ -57,14 +57,14 @@ export function SchedulingView() {
         </Typography>
       </header>
 
-      <section className="pt-12">
-        <div className="flex justify-end gap-3 mb-4">
+      <section className="pt-8 md:pt-12">
+        <div className="flex flex-wrap items-center gap-2 md:gap-3 mb-6 md:justify-end">
           {solverResult && (
             <>
-              <div className="group relative">
+              <div className="group relative flex-1 sm:flex-none">
                 <Button
                   variant="outline"
-                  className="flex items-center gap-2 border-green-900/20 hover:bg-green-900/10 text-green-400 hover:text-green-500"
+                  className="w-full flex items-center justify-center gap-2 border-green-900/20 hover:bg-green-900/10 text-green-400 hover:text-green-500"
                 >
                   <Download size={14} />
                   Exportar
@@ -92,22 +92,28 @@ export function SchedulingView() {
                   </DropMenuItem>
                 </DropMenu>
               </div>
+
               <Button
                 variant="outline"
                 onClick={unfixAll}
                 disabled={isSaving}
-                className="flex items-center gap-2"
+                className="flex-1 sm:flex-none flex items-center justify-center gap-2"
               >
                 <Unlock size={14} />
                 Desfijar todo
               </Button>
+
               <Button
                 onClick={fixAll}
                 disabled={isSaving}
-                className="flex items-center gap-2"
+                className="flex-1 sm:flex-none flex items-center justify-center gap-2"
               >
-                {isSaving ? <Loader2 className="animate-spin" size={14} /> : <Lock size={14} />}
-                Fijar todas las asignaciones
+                {isSaving ? (
+                  <Loader2 className="animate-spin" size={14} />
+                ) : (
+                  <Lock size={14} />
+                )}
+                Fijar todas
               </Button>
             </>
           )}

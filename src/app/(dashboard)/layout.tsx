@@ -18,11 +18,10 @@ export default function DashboardLayout({
         <YearsBar />
       </div>
 
-      {/* Mobile Sidebar Overlay */}
       {isSidebarOpen && (
         <div className="fixed inset-0 z-[100] md:hidden">
-          <div 
-            className="absolute inset-0 bg-zinc-950/80 backdrop-blur-sm animate-in fade-in duration-300" 
+          <div
+            className="absolute inset-0 bg-zinc-950/80 backdrop-blur-sm animate-in fade-in duration-300"
             onClick={() => setSidebarOpen(false)}
           />
           <aside className="absolute inset-y-0 left-0 w-72 bg-zinc-950 border-r border-zinc-800 p-6 shadow-2xl animate-in slide-in-from-left duration-300">
