@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useCallback, useRef } from 'react';
+import { useEffect, useState, useCallback, useRef, useMemo } from 'react';
 import { Day, Team, Tutor, Assignment } from '@/types';
 import { SolverResult } from '@/lib';
 import { TutorWorkloadCard } from '@/components/features/tutors/TutorWorkloadCard';
@@ -107,8 +107,29 @@ export default function SchedulingPage() {
     startSolverWorker(state.teams, state.tutors, []);
   };
 
-  const getTeamName = (id: string) => state.teams.find(t => t.id === id)?.name || id;
-  const getTutorName = (id: string) => state.tutors.find(t => t.id === id)?.name || id;
+  const teamNamesMap = useMemo(() => {
+    const map = new Map<string, string>();
+    state.teams.forEach(t => map.set(t.id, t.name));
+    return map;
+  }, [state.teams]);
+
+  const tutorNamesMap = useMemo(() => {
+    const map = new Map<string, string>();
+    state.tutors.forEach(t => map.set(t.id, t.name));
+    return map;
+  }, [state.tutors]);
+
+  const assignmentsByTutor = useMemo(() => {
+    const map = new Map<string, Assignment[]>();
+    state.result?.assignments.forEach(a => {
+      const current = map.get(a.tutor_id) || [];
+      map.set(a.tutor_id, [...current, a]);
+    });
+    return map;
+  }, [state.result?.assignments]);
+
+  const getTeamName = useCallback((id: string) => teamNamesMap.get(id) || id, [teamNamesMap]);
+  const getTutorName = useCallback((id: string) => tutorNamesMap.get(id) || id, [tutorNamesMap]);
 
   if (!activeCompetition) {
     return (
@@ -144,7 +165,7 @@ export default function SchedulingPage() {
                   Exportar
                   <ChevronUp size={12} className="opacity-50" />
                 </Button>
-                
+
                 <DropMenu position="up">
                   <DropMenuItem
                     icon={FileSpreadsheet}
@@ -235,7 +256,7 @@ export default function SchedulingPage() {
             <TutorWorkloadCard
               key={t.id}
               tutor={t}
-              assignments={result?.assignments.filter(a => a.tutor_id === t.id) || []}
+              assignments={assignmentsByTutor.get(t.id) || []}
               getTeamName={getTeamName}
             />
           ))}
