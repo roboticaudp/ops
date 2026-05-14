@@ -2,7 +2,7 @@
 
 import { LogOut } from 'lucide-react';
 import { useAuth } from '@/lib/context/AuthContext';
-import { Avatar, Typography, Skeleton, DropMenu, DropMenuItem } from '@/components/ui';
+import { Avatar, Skeleton, DropMenu, DropMenuItem, Profile } from '@/components/ui';
 import { AuthService } from '@/services/auth.service';
 import { useRouter } from 'next/navigation';
 
@@ -22,32 +22,31 @@ export function UserMenu() {
   };
 
   return (
-    <div className="flex items-center gap-4">
-      <div className="flex flex-col items-end">
-        <Typography as="p" className="text-sm uppercase">
-          {user.user_metadata?.full_name || 'Usuario'}
-        </Typography>
-        <Typography as="p" emphasis="medium" className="text-xs">
-          {user.email}
-        </Typography>
-      </div>
-      <div className="relative group">
-        <Avatar
-          src={user.user_metadata?.avatar_url}
-          name={user.user_metadata?.full_name || user.email}
-          className="cursor-pointer h-8 w-8"
-        />
+    <div className="relative group">
+      <Profile
+        reverse
+        className="cursor-pointer"
+        avatar={
+          <Avatar
+            src={user.user_metadata?.avatar_url}
+            name={user.user_metadata?.full_name || user.email}
+            className="h-8 w-8"
+          />
+        }
+        title={user.user_metadata?.full_name || 'Usuario'}
+        description={user.email}
+        titleClassName="uppercase text-xs"
+      />
 
-        <DropMenu>
-          <DropMenuItem
-            icon={LogOut}
-            variant="danger"
-            onClick={handleLogout}
-          >
-            Cerrar sesión
-          </DropMenuItem>
-        </DropMenu>
-      </div>
+      <DropMenu>
+        <DropMenuItem
+          icon={LogOut}
+          variant="danger"
+          onClick={handleLogout}
+        >
+          Cerrar sesión
+        </DropMenuItem>
+      </DropMenu>
     </div>
   );
 }

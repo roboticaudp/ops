@@ -13,3 +13,4 @@ export * from './DropMenu';
 export * from './Legend';
 export * from './StatsPanel';
 export * from './StatusCard';
+export * from './Profile';

@@ -2,9 +2,8 @@
 
 import { useState } from 'react';
 import { Team } from '@/types';
-import { Card, Typography, Avatar, Badge, Button } from '@/components/ui';
+import { Card, Typography, Avatar, Badge, Button, Profile } from '@/components/ui';
 import { Trash2, Calendar, Save, RefreshCcw } from 'lucide-react';
-import { EntitySidebar } from '@/components/layout/EntitySidebar';
 import { BlockSelectionGrid } from '@/components/features/solver/grids';
 import { useEntityEditor } from '@/lib/hooks';
 
@@ -17,14 +16,13 @@ interface TeamCardProps {
 export function TeamCard({ team, onUpdate, onDelete }: TeamCardProps) {
   const [isDeleting, setIsDeleting] = useState(false);
 
-  // Usamos el nuevo hook para manejar toda la lógica de edición
-  const { 
-    tempData: tempTeam, 
-    updateField, 
-    hasChanges, 
-    isSaving: loading, 
-    save: handleSave, 
-    reset: handleReset 
+  const {
+    tempData: tempTeam,
+    updateField,
+    hasChanges,
+    isSaving: loading,
+    save: handleSave,
+    reset: handleReset
   } = useEntityEditor(team, async (updatedTeam) => {
     if (onUpdate) {
       return await onUpdate(team.id, { availability: updatedTeam.availability });
@@ -43,30 +41,31 @@ export function TeamCard({ team, onUpdate, onDelete }: TeamCardProps) {
   };
 
   return (
-    <Card className="flex flex-col xl:flex-row gap-8 p-0 overflow-hidden border-zinc-800/50 bg-zinc-900/20">
-      <EntitySidebar>
+    <Card className="flex flex-col xl:flex-row gap-0 p-0 overflow-hidden">
+      <div className="w-full xl:w-80 p-6 flex flex-col justify-between">
         <div className="space-y-6">
           <div className="flex justify-between items-start">
-            <div className="space-y-2">
-              <Avatar name={team.name} />
-              <Typography as="h3">{team.name}</Typography>
-              <Typography as="p" emphasis="medium" className="text-xs">{team.school}</Typography>
-            </div>
+            <Profile
+              avatar={<Avatar name={team.name} />}
+              title={team.name}
+              description={team.school}
+              titleClassName="text-base"
+            />
             {onDelete && (
               <Button
                 variant="ghost"
-                className="text-red-500 hover:text-red-400 p-2"
+                className="text-zinc-600 hover:text-red-400 p-1.5 h-auto"
                 onClick={handleDelete}
                 disabled={isDeleting}
               >
-                <Trash2 size={16} />
+                <Trash2 size={14} />
               </Button>
             )}
           </div>
 
-          <div className="bg-zinc-950 p-4 rounded-xl border border-zinc-800">
-            <Typography as="p" emphasis="medium" className="text-xs">Responsable:</Typography>
-            <Typography as="p" emphasis="medium" className="text-sm">{team.professor}</Typography>
+          <div className="bg-zinc-950/50 p-4 rounded-xl border border-zinc-800/50 space-y-1">
+            <Typography as="p" emphasis="medium" className="text-[10px] text-zinc-500 uppercase tracking-wider">Responsable</Typography>
+            <Typography as="p" emphasis="medium" className="text-sm text-zinc-200">{team.professor}</Typography>
           </div>
         </div>
 
@@ -91,13 +90,15 @@ export function TeamCard({ team, onUpdate, onDelete }: TeamCardProps) {
             </Button>
           </div>
         )}
-      </EntitySidebar>
+      </div>
 
-      <div className="flex-1 p-6 bg-zinc-950/20">
+      <div className="flex-1 p-6">
         <div className="mb-4 flex items-center justify-between">
-          <Typography as="p" emphasis="medium" className="text-xs">Disponibilidad del Equipo:</Typography>
-          <Badge color="blue">
-            <Calendar size={11} />
+          <div className="flex items-center gap-2">
+            <Calendar size={14} className="text-blue-500" />
+            <Typography as="p" emphasis="medium" className="text-xs font-bold text-zinc-300">Disponibilidad del Equipo</Typography>
+          </div>
+          <Badge color="blue" className="bg-blue-500/10 text-blue-400 border-blue-500/20">
             {tempTeam.availability.length} bloques marcados
           </Badge>
         </div>

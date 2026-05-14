@@ -3,7 +3,3 @@ export * from './SpareCapacityGrid';
 export * from './TutorWorkloadGrid';
 export * from './BlockSelectionGrid';
 export * from './MiniAvailabilityGrid';
-export * from './cells/AssignmentGridCell';
-export * from './cells/CapacityGridCell';
-export * from './cells/WorkloadGridCell';
-export * from './cells/SelectionGridCell';
