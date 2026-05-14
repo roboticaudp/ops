@@ -2,19 +2,15 @@
 
 import { ReactNode, useState, useEffect } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { persistQueryClient } from '@tanstack/react-query-persist-client';
-import { createSyncStoragePersister } from '@tanstack/query-sync-storage-persister';
+import { createAsyncStoragePersister } from '@tanstack/query-async-storage-persister';
 import { CompetitionProvider } from '@/lib/context/CompetitionContext';
 import { AuthProvider } from '@/lib/context/AuthContext';
 
 /**
  * Wrapper de providers client-side.
- * Separado del RootLayout para que el layout pueda ser un Server Component,
- * habilitando SSR y optimizaciones de caché de Vercel.
  */
 export function ClientProviders({ children }: { children: ReactNode }) {
-  // Creamos el QueryClient con un estado para que no se resetee en re-renders
   const [queryClient] = useState(() => new QueryClient({
     defaultOptions: {
       queries: {
@@ -27,13 +23,13 @@ export function ClientProviders({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      const localStoragePersister = createSyncStoragePersister({
+      const asyncStoragePersister = createAsyncStoragePersister({
         storage: window.localStorage,
       });
 
       persistQueryClient({
         queryClient,
-        persister: localStoragePersister,
+        persister: asyncStoragePersister,
         maxAge: 1000 * 60 * 60 * 24, // 24 horas
       });
     }
@@ -46,7 +42,6 @@ export function ClientProviders({ children }: { children: ReactNode }) {
           {children}
         </CompetitionProvider>
       </AuthProvider>
-      <ReactQueryDevtools initialIsOpen={false} />
     </QueryClientProvider>
   );
 }
