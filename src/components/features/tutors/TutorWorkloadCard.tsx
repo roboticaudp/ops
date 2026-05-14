@@ -1,7 +1,7 @@
 'use client';
 
 import { Tutor, Assignment } from '@/types';
-import { Card, Typography, Badge, Avatar } from '@/components/ui';
+import { Card, Typography, Badge, Avatar, StatsPanel, StatsItem } from '@/components/ui';
 import { TutorWorkloadGrid } from '@/components/features/solver/grids';
 import { Mail, Check, AlertCircle } from 'lucide-react';
 
@@ -27,18 +27,14 @@ export function TutorWorkloadCard({ tutor, assignments, getTeamName }: TutorWork
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
-            <div className="bg-zinc-950 p-3 rounded-lg border border-zinc-800/50">
-              <p className="text-[8px] font-black text-zinc-600 uppercase mb-1">Cupos</p>
-              <p className="text-lg font-mono font-bold text-zinc-300">{tutor.max_sessions}</p>
-            </div>
-            <div className="bg-zinc-950 p-3 rounded-lg border border-zinc-800/50">
-              <p className="text-[8px] font-black text-zinc-600 uppercase mb-1">Carga</p>
-              <p className={`text-lg font-mono font-bold ${assignments.length > 0 ? 'text-blue-400' : 'text-zinc-600'}`}>
-                {assignments.length}
-              </p>
-            </div>
-          </div>
+          <StatsPanel>
+            <StatsItem label="Cupos" value={tutor.max_sessions} />
+            <StatsItem 
+              label="Carga" 
+              value={assignments.length} 
+              valueClassName={assignments.length > 0 ? 'text-blue-400' : 'text-zinc-600'} 
+            />
+          </StatsPanel>
         </div>
 
         <div className="mt-8 pt-4 border-t border-zinc-800/50">
