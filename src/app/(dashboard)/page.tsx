@@ -66,13 +66,12 @@ export default function SchedulingPage() {
               <div className="group relative">
                 <Button
                   variant="outline"
-                  className="flex items-center gap-2 border-green-900/50 hover:bg-green-900/10 text-green-400"
+                  className="flex items-center gap-2 border-green-900/20 hover:bg-green-900/10 text-green-400 hover:text-green-500"
                 >
                   <Download size={14} />
                   Exportar
-                  <ChevronUp size={12} className="opacity-50" />
                 </Button>
-                
+
                 <DropMenu position="up">
                   <DropMenuItem
                     icon={FileSpreadsheet}

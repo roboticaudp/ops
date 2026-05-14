@@ -18,7 +18,7 @@ export function DropMenu({ children, className = "", position = 'down' }: DropMe
 
   return (
     <div className={cn(
-      "absolute right-0 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50",
+      "absolute right-0 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-30",
       positionClasses[position],
       className
     )}>
@@ -37,12 +37,12 @@ interface DropMenuItemProps {
   className?: string;
 }
 
-export function DropMenuItem({ 
-  children, 
-  onClick, 
-  icon: Icon, 
-  variant = 'default', 
-  className = "" 
+export function DropMenuItem({
+  children,
+  onClick,
+  icon: Icon,
+  variant = 'default',
+  className = ""
 }: DropMenuItemProps) {
   const variants = {
     default: "text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800/50",
