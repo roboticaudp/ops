@@ -8,15 +8,17 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   return (
-    <>
-      <Header />
-      <YearsBar />
-      <div className="flex-1 flex gap-8 px-8 pb-10 pt-40 w-full">
+    <div className="flex flex-col min-h-screen">
+      <div className="sticky top-0 z-50 flex flex-col">
+        <Header />
+        <YearsBar />
+      </div>
+      <div className="flex-1 flex gap-8 px-8 pb-10 pt-8 w-full">
         <Sidebar />
         <main className="flex-1 min-w-0">
           <PageLoader>{children}</PageLoader>
         </main>
       </div>
-    </>
+    </div>
   );
 }
