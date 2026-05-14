@@ -5,7 +5,6 @@ export const TABLES = {
   COMPETITIONS: 'competitions',
   TEAMS: 'teams',
   TUTORS: 'tutors',
-  ASSIGNMENTS: 'assignments',
 } as const;
 
 /**
@@ -35,19 +34,6 @@ export const COLUMNS = {
     EMAIL: 'email',
     MAX_SESSIONS: 'max_sessions',
     AVAILABILITY: 'availability',
-  },
-  /** 
-   * NOTA: Actualmente las asignaciones se manejan vía JSON blob en la columna 
-   * assignments_state de la tabla COMPETITIONS para optimizar lecturas.
-   * La tabla ASSIGNMENTS se mantiene para compatibilidad o futuras migraciones atómicas.
-   */
-  ASSIGNMENTS: {
-    ID: 'id',
-    COMPETITION_ID: 'competition_id',
-    TEAM_ID: 'team_id',
-    TUTOR_ID: 'tutor_id',
-    BLOCK_ID: 'block_id',
-    IS_FIXED: 'is_fixed',
   }
 } as const;
 

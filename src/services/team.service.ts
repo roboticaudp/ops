@@ -11,7 +11,7 @@ export const TeamService = {
       .from(TABLES.TEAMS)
       .select(SELECTS.TEAM_LIST)
       .eq(COLUMNS.TEAMS.COMPETITION_ID, competitionId);
-    
+
     if (error) handleServiceError(error);
     return data;
   },
@@ -24,7 +24,7 @@ export const TeamService = {
         .insert(validated)
         .select()
         .single();
-      
+
       if (error) handleServiceError(error);
       return data;
     } catch (error) {
@@ -39,7 +39,7 @@ export const TeamService = {
         .from(TABLES.TEAMS)
         .update(validated)
         .eq(COLUMNS.TEAMS.ID, id);
-      
+
       if (error) handleServiceError(error);
       return true;
     } catch (error) {
@@ -49,23 +49,16 @@ export const TeamService = {
 
   async delete(id: string, supabase: SupabaseClient = defaultClient) {
     try {
-      // 1. Eliminar asignaciones relacionadas primero
-      const { error: assignError } = await supabase
-        .from(TABLES.ASSIGNMENTS)
-        .delete()
-        .eq(COLUMNS.ASSIGNMENTS.TEAM_ID, id);
-      
-      if (assignError) handleServiceError(assignError);
-
-      // 2. Eliminar el equipo
+      // Eliminar el equipo. Las asignaciones en el JSON state se limpiarán
+      // la próxima vez que se guarde el estado desde el dashboard.
       const { data, error } = await supabase
         .from(TABLES.TEAMS)
         .delete()
         .eq(COLUMNS.TEAMS.ID, id)
         .select();
-      
+
       if (error) handleServiceError(error);
-      
+
       if (!data || data.length === 0) {
         throw new Error("No se pudo eliminar el equipo. Esto suele deberse a que las políticas de seguridad (RLS) de la base de datos no permiten el borrado para tu usuario actual o el registro ya no existe.");
       }
