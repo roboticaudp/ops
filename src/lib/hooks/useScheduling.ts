@@ -37,9 +37,13 @@ export function useScheduling() {
   }, [teams, tutors, assignments]);
 
   useEffect(() => {
-    startSolverWorker();
+    const hasData = teams.length > 0 && tutors.length > 0;
+    if (hasData) {
+      // Usamos una microtarea para evitar el aviso de renderizado en cascada síncrono
+      queueMicrotask(() => startSolverWorker());
+    }
     return () => workerRef.current?.terminate();
-  }, [startSolverWorker]);
+  }, [startSolverWorker, teams.length, tutors.length]);
 
   // 4. Acciones (Handlers)
   const toggleFixed = async (assignment: Assignment) => {

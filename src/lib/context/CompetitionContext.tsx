@@ -26,7 +26,10 @@ export function CompetitionProvider({ children }: { children: React.ReactNode })
   useEffect(() => {
     if (competitions.length > 0 && !activeCompetition) {
       const active = competitions.find(c => c.status === 'active') || competitions.find(c => c.was_held) || competitions[0];
-      setActiveCompetition(active);
+      if (active) {
+        // Usamos una microtarea para evitar el aviso de renderizado en cascada síncrono
+        queueMicrotask(() => setActiveCompetition(active));
+      }
     }
   }, [competitions, activeCompetition]);
 
