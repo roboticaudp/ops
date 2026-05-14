@@ -3,13 +3,14 @@ import { SupabaseClient } from '@supabase/supabase-js';
 import { Competition, Assignment } from '@/types';
 import { competitionSchema } from '@/lib/validations';
 import { handleServiceError } from '@/lib/errors';
+import { TABLES, COLUMNS, SELECTS } from '@/lib/database.constants';
 
 export const CompetitionService = {
   async getAll(supabase: SupabaseClient = defaultClient) {
     const { data, error } = await supabase
-      .from('competitions')
-      .select('id, name, year, was_held, status')
-      .order('year', { ascending: false });
+      .from(TABLES.COMPETITIONS)
+      .select(SELECTS.COMPETITION_LIST)
+      .order(COLUMNS.COMPETITIONS.YEAR, { ascending: false });
     
     if (error) handleServiceError(error);
     return data;
@@ -17,9 +18,9 @@ export const CompetitionService = {
 
   async getActive(supabase: SupabaseClient = defaultClient) {
     const { data, error } = await supabase
-      .from('competitions')
-      .select('id, name, year, was_held, status')
-      .eq('status', 'active')
+      .from(TABLES.COMPETITIONS)
+      .select(SELECTS.COMPETITION_LIST)
+      .eq(COLUMNS.COMPETITIONS.STATUS, 'active')
       .single();
     
     if (error && error.code !== 'PGRST116') handleServiceError(error);
@@ -30,8 +31,8 @@ export const CompetitionService = {
     try {
       const validated = competitionSchema.parse(payload);
       const { data, error } = await supabase
-        .from('competitions')
-        .insert({ ...validated, status: 'archived' })
+        .from(TABLES.COMPETITIONS)
+        .insert({ ...validated, [COLUMNS.COMPETITIONS.STATUS]: 'archived' })
         .select()
         .single();
       
@@ -44,9 +45,9 @@ export const CompetitionService = {
 
   async update(id: string, payload: Partial<Competition>, supabase: SupabaseClient = defaultClient) {
     const { data, error } = await supabase
-      .from('competitions')
+      .from(TABLES.COMPETITIONS)
       .update(payload)
-      .eq('id', id)
+      .eq(COLUMNS.COMPETITIONS.ID, id)
       .select()
       .single();
     
@@ -56,9 +57,9 @@ export const CompetitionService = {
 
   async delete(id: string, supabase: SupabaseClient = defaultClient) {
     const { error } = await supabase
-      .from('competitions')
+      .from(TABLES.COMPETITIONS)
       .delete()
-      .eq('id', id);
+      .eq(COLUMNS.COMPETITIONS.ID, id);
     
     if (error) handleServiceError(error);
     return true;
@@ -66,9 +67,9 @@ export const CompetitionService = {
 
   async getAssignmentsState(id: string, supabase: SupabaseClient = defaultClient) {
     const { data, error } = await supabase
-      .from('competitions')
-      .select('assignments_state')
-      .eq('id', id)
+      .from(TABLES.COMPETITIONS)
+      .select(COLUMNS.COMPETITIONS.ASSIGNMENTS_STATE)
+      .eq(COLUMNS.COMPETITIONS.ID, id)
       .single();
     
     if (error && error.code !== 'PGRST116') handleServiceError(error);
@@ -77,9 +78,9 @@ export const CompetitionService = {
 
   async saveAssignmentsState(id: string, assignments: Assignment[], supabase: SupabaseClient = defaultClient) {
     const { error } = await supabase
-      .from('competitions')
-      .update({ assignments_state: assignments })
-      .eq('id', id);
+      .from(TABLES.COMPETITIONS)
+      .update({ [COLUMNS.COMPETITIONS.ASSIGNMENTS_STATE]: assignments })
+      .eq(COLUMNS.COMPETITIONS.ID, id);
     
     if (error) handleServiceError(error);
     return true;
@@ -93,17 +94,17 @@ export const CompetitionService = {
   async setActive(id: string, supabase: SupabaseClient = defaultClient) {
     // Batch: archivar todas las activas de una vez
     const { error: archiveError } = await supabase
-      .from('competitions')
-      .update({ status: 'archived' })
-      .eq('status', 'active');
+      .from(TABLES.COMPETITIONS)
+      .update({ [COLUMNS.COMPETITIONS.STATUS]: 'archived' })
+      .eq(COLUMNS.COMPETITIONS.STATUS, 'active');
     
     if (archiveError) handleServiceError(archiveError);
 
     // Activar la seleccionada
     const { error: activateError } = await supabase
-      .from('competitions')
-      .update({ status: 'active' })
-      .eq('id', id);
+      .from(TABLES.COMPETITIONS)
+      .update({ [COLUMNS.COMPETITIONS.STATUS]: 'active' })
+      .eq(COLUMNS.COMPETITIONS.ID, id);
     
     if (activateError) handleServiceError(activateError);
     return true;
