@@ -25,12 +25,14 @@ interface SidebarLinkProps {
   label: string;
   Icon: LucideIcon;
   isActive?: boolean;
+  onClick?: () => void;
 }
 
-function SidebarLink({ href, label, Icon, isActive }: SidebarLinkProps) {
+function SidebarLink({ href, label, Icon, isActive, onClick }: SidebarLinkProps) {
   return (
     <Link
       href={href}
+      onClick={onClick}
       className={`group flex items-center gap-2.5 px-4 py-2 rounded-lg transition-all duration-200 ${isActive
           ? 'bg-zinc-800/40 opacity-[0.87]'
           : 'text-zinc-500 hover:text-zinc-300 hover:bg-zinc-900/30 opacity-60'
@@ -58,11 +60,15 @@ const ADMIN_LINKS = [
   { href: APP_ROUTES.SETTINGS.COMPETITIONS, label: 'Ediciones', Icon: Trophy },
 ];
 
-export function Sidebar() {
+interface SidebarProps {
+  onLinkClick?: () => void;
+}
+
+export function Sidebar({ onLinkClick }: SidebarProps) {
   const pathname = usePathname();
 
   return (
-    <aside className="w-56 flex-shrink-0 sticky top-36 h-fit">
+    <aside className="w-full md:w-56 flex-shrink-0 md:sticky md:top-36 h-fit">
       <nav aria-label="Navegación Principal">
         <div className="flex flex-col gap-8">
           <div>
@@ -75,6 +81,7 @@ export function Sidebar() {
                     label={link.label}
                     Icon={link.Icon}
                     isActive={pathname === link.href}
+                    onClick={onLinkClick}
                   />
                 </li>
               ))}
@@ -91,6 +98,7 @@ export function Sidebar() {
                     label={link.label}
                     Icon={link.Icon}
                     isActive={pathname === link.href}
+                    onClick={onLinkClick}
                   />
                 </li>
               ))}

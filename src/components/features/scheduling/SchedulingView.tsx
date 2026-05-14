@@ -44,10 +44,10 @@ export function SchedulingView() {
   }
 
   return (
-    <div className="space-y-12">
-      <header className="mb-10">
-        <div className="flex items-center gap-4 mb-3">
-          <Typography as="h1" className="text-5xl lg:text-6xl font-bold">
+    <div className="space-y-8 md:space-y-12">
+      <header className="mb-6 md:mb-10">
+        <div className="flex flex-col md:flex-row md:items-center gap-4 mb-3">
+          <Typography as="h1" className="text-3xl md:text-5xl lg:text-6xl font-bold">
             {activeCompetition?.name}
           </Typography>
           {isSolving && <Badge color="blue" className="animate-pulse">Calculando óptimo...</Badge>}
