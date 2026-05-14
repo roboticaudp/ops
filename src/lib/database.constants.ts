@@ -36,6 +36,11 @@ export const COLUMNS = {
     MAX_SESSIONS: 'max_sessions',
     AVAILABILITY: 'availability',
   },
+  /** 
+   * NOTA: Actualmente las asignaciones se manejan vía JSON blob en la columna 
+   * assignments_state de la tabla COMPETITIONS para optimizar lecturas.
+   * La tabla ASSIGNMENTS se mantiene para compatibilidad o futuras migraciones atómicas.
+   */
   ASSIGNMENTS: {
     ID: 'id',
     COMPETITION_ID: 'competition_id',
