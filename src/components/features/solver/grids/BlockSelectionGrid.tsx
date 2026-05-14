@@ -1,7 +1,7 @@
 'use client';
 
 import type { Block } from '@/types';
-import { CalendarGrid } from '@/components/ui';
+import { Calendar } from '@/components/ui';
 import { SelectionGridCell } from '@/components/features/solver/grids/cells/SelectionGridCell';
 
 interface BlockSelectionGridProps {
@@ -19,7 +19,7 @@ export function BlockSelectionGrid({ selected, onChange }: BlockSelectionGridPro
   };
 
   return (
-    <CalendarGrid
+    <Calendar
       renderBlock={(block: Block) => (
         <SelectionGridCell
           key={block.id}

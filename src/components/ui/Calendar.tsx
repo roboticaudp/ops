@@ -1,7 +1,36 @@
 'use client';
 
 import React from 'react';
-import { cn } from '@/lib/utils';
+import { TIME_BLOCKS, Day, Block } from '@/types';
+import { cn } from "@/lib/utils";
+
+const DAYS: Day[] = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+
+interface CalendarProps {
+  renderBlock: (block: Block) => React.ReactNode;
+  className?: string;
+}
+
+export function Calendar({ renderBlock, className }: CalendarProps) {
+  return (
+    <div className={cn("grid grid-cols-1 md:grid-cols-6 gap-4", className)}>
+      {DAYS.map(day => (
+        <div key={day} className="space-y-4">
+          <div className="text-center pb-2 border-b border-zinc-800">
+            <span className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">{day}</span>
+          </div>
+          <div className="space-y-2">
+            {TIME_BLOCKS.filter((b: Block) => b.day === day).map((block: Block) => (
+              <React.Fragment key={block.id}>
+                {renderBlock(block)}
+              </React.Fragment>
+            ))}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
 
 interface CalendarBlockProps {
   time?: string;

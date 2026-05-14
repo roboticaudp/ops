@@ -1,7 +1,7 @@
 'use client';
 
 import { Tutor, Team, Assignment, Block } from '@/types';
-import { CalendarGrid } from '@/components/ui';
+import { Calendar } from '@/components/ui';
 import { CapacityGridCell } from '@/components/features/solver/grids/cells/CapacityGridCell';
 import { SchedulingRules } from '@/lib/solver';
 
@@ -38,7 +38,7 @@ export function SpareCapacityGrid({ tutors, teams, assignments }: SpareCapacityG
   };
 
   return (
-    <CalendarGrid
+    <Calendar
       renderBlock={(block: Block) => (
         <CapacityGridCell
           key={block.id}

@@ -1,7 +1,7 @@
 'use client';
 
 import type { Assignment, Block } from '@/types';
-import { CalendarGrid } from '@/components/ui';
+import { Calendar } from '@/components/ui';
 import { AssignmentGridCell } from '@/components/features/solver/grids/cells/AssignmentGridCell';
 
 interface MainAssignmentGridProps {
@@ -18,7 +18,7 @@ export function MainAssignmentGrid({
   onToggleFixed
 }: MainAssignmentGridProps) {
   return (
-    <CalendarGrid
+    <Calendar
       renderBlock={(block: Block) => (
         <AssignmentGridCell
           key={block.id}

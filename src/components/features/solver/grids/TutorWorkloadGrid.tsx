@@ -1,7 +1,7 @@
 'use client';
 
 import type { Assignment, Block } from '@/types';
-import { CalendarGrid } from '@/components/ui';
+import { Calendar } from '@/components/ui';
 import { WorkloadGridCell } from '@/components/features/solver/grids/cells/WorkloadGridCell';
 
 interface TutorWorkloadGridProps {
@@ -11,7 +11,7 @@ interface TutorWorkloadGridProps {
 
 export function TutorWorkloadGrid({ assignments, getTeamName }: TutorWorkloadGridProps) {
   return (
-    <CalendarGrid
+    <Calendar
       renderBlock={(block: Block) => (
         <WorkloadGridCell
           key={block.id}
