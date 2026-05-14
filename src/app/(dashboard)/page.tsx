@@ -7,6 +7,8 @@ import { buildExportRows, downloadCSV, exportToGridExcel } from '@/lib/export';
 import { useScheduling } from '@/lib/hooks/useScheduling';
 import { Tutor } from '@/types';
 
+import { Virtuoso } from 'react-virtuoso';
+
 // Carga dinámica de componentes pesados
 const TutorWorkloadCard = dynamic(() => import('@/components/features/tutors/TutorWorkloadCard').then(m => m.TutorWorkloadCard), {
   loading: () => <div className="h-48 animate-pulse bg-zinc-900/50 rounded-2xl" />
@@ -152,14 +154,20 @@ export default function SchedulingPage() {
           <Typography as="p" emphasis="medium">Visualización de la carga de trabajo de cada tutor.</Typography>
         </header>
         <div className="flex flex-col gap-8">
-          {tutors.map((t: Tutor) => (
-            <TutorWorkloadCard
-              key={t.id}
-              tutor={t}
-              assignments={assignmentsByTutor.get(t.id) || []}
-              getTeamName={getTeamName}
-            />
-          ))}
+          <Virtuoso
+            useWindowScroll
+            data={tutors}
+            itemContent={(index, t) => (
+              <div className="pb-8">
+                <TutorWorkloadCard
+                  key={t.id}
+                  tutor={t}
+                  assignments={assignmentsByTutor.get(t.id) || []}
+                  getTeamName={getTeamName}
+                />
+              </div>
+            )}
+          />
         </div>
       </section>
     </div>
