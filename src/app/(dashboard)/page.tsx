@@ -1,90 +1,21 @@
 'use client';
 
-import { useState, useCallback, useRef, useMemo, useEffect } from 'react';
-import { Day, Team, Tutor, Assignment } from '@/types';
-import { SolverResult } from '@/lib';
 import { TutorWorkloadCard } from '@/components/features/tutors/TutorWorkloadCard';
 import { SpareCapacityGrid, MainAssignmentGrid, UnassignedTeamsSection } from '@/components/features/solver';
-import { useCompetition } from '@/lib/context/CompetitionContext';
 import { Typography, Badge, Button, DropMenu, DropMenuItem } from '@/components/ui';
 import { Lock, Unlock, Download, AlertCircle, CheckCircle, ChevronUp, FileSpreadsheet, FileText, Loader2 } from 'lucide-react';
 import { buildExportRows, downloadCSV, exportToGridExcel } from '@/lib/export';
-import { useCompetitionData, useSaveAssignmentsState } from '@/lib/hooks/useQueries';
-
-const DAYS: Day[] = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+import { useScheduling } from '@/lib/hooks/useScheduling';
+import { Tutor } from '@/types';
 
 export default function SchedulingPage() {
-  const { activeCompetition } = useCompetition();
-  const { teams, tutors, assignments, isLoading: isDataLoading } = useCompetitionData(activeCompetition?.id);
-  const saveAssignments = useSaveAssignmentsState();
-
-  const [solverResult, setSolverResult] = useState<SolverResult | null>(null);
-  const [isSolving, setIsSolving] = useState(false);
-
-  const workerRef = useRef<Worker | null>(null);
-
-  const startSolverWorker = useCallback(() => {
-    if (!teams.length || !tutors.length) return;
-
-    setIsSolving(true);
-    workerRef.current?.terminate();
-    const worker = new Worker(new URL('../../workers/solver.worker.ts', import.meta.url));
-    workerRef.current = worker;
-
-    worker.onmessage = (e: MessageEvent<SolverResult>) => {
-      setSolverResult(e.data);
-      setIsSolving(false);
-    };
-
-    const fixed = assignments.filter(a => !!a.is_fixed);
-    worker.postMessage({ teams, tutors, fixedAssignments: fixed });
-  }, [teams, tutors, assignments]);
-
-  useEffect(() => {
-    startSolverWorker();
-    return () => workerRef.current?.terminate();
-  }, [startSolverWorker]);
-
-  const toggleAssignmentFixed = async (assignment: Assignment) => {
-    if (!activeCompetition || !solverResult) return;
-
-    const isNowFixed = !assignment.is_fixed;
-    const updatedAssignments = solverResult.assignments.map(a =>
-      a.team_id === assignment.team_id ? { ...a, is_fixed: isNowFixed } : a
-    );
-
-    await saveAssignments.mutateAsync({
-      competitionId: activeCompetition.id,
-      assignments: updatedAssignments
-    });
-  };
-
-  const fixAllAssignments = async () => {
-    if (!solverResult || !activeCompetition) return;
-    const allFixed = solverResult.assignments.map(a => ({ ...a, is_fixed: true }));
-    await saveAssignments.mutateAsync({ competitionId: activeCompetition.id, assignments: allFixed });
-  };
-
-  const unfixAllAssignments = async () => {
-    if (!solverResult || !activeCompetition) return;
-    const allUnfixed = solverResult.assignments.map(a => ({ ...a, is_fixed: false }));
-    await saveAssignments.mutateAsync({ competitionId: activeCompetition.id, assignments: allUnfixed });
-  };
-
-  const teamNamesMap = useMemo(() => new Map<string, string>(teams.map((t: Team) => [t.id, t.name])), [teams]);
-  const tutorNamesMap = useMemo(() => new Map<string, string>(tutors.map((t: Tutor) => [t.id, t.name])), [tutors]);
-
-  const assignmentsByTutor = useMemo(() => {
-    const map = new Map<string, Assignment[]>();
-    solverResult?.assignments.forEach(a => {
-      const current = map.get(a.tutor_id) || [];
-      map.set(a.tutor_id, [...current, a]);
-    });
-    return map;
-  }, [solverResult?.assignments]);
-
-  const getTeamName = useCallback((id: string) => teamNamesMap.get(id) || id, [teamNamesMap]);
-  const getTutorName = useCallback((id: string) => tutorNamesMap.get(id) || id, [tutorNamesMap]);
+  const {
+    activeCompetition,
+    data: { teams, tutors, solverResult, assignmentsByTutor },
+    status: { isLoading, isSolving, isSaving },
+    actions: { fixAll, unfixAll, toggleFixed },
+    utils: { getTeamName, getTutorName }
+  } = useScheduling();
 
   if (!activeCompetition) {
     return (
@@ -94,7 +25,7 @@ export default function SchedulingPage() {
     );
   }
 
-  if (isDataLoading) {
+  if (isLoading) {
     return (
       <div className="flex flex-col items-center justify-center py-20 gap-4">
         <Loader2 className="animate-spin text-blue-500" size={40} />
@@ -130,7 +61,7 @@ export default function SchedulingPage() {
                   Exportar
                   <ChevronUp size={12} className="opacity-50" />
                 </Button>
-
+                
                 <DropMenu position="up">
                   <DropMenuItem
                     icon={FileSpreadsheet}
@@ -155,19 +86,19 @@ export default function SchedulingPage() {
               </div>
               <Button
                 variant="outline"
-                onClick={unfixAllAssignments}
-                disabled={saveAssignments.isPending}
+                onClick={unfixAll}
+                disabled={isSaving}
                 className="flex items-center gap-2"
               >
                 <Unlock size={14} />
                 Desfijar todo
               </Button>
               <Button
-                onClick={fixAllAssignments}
-                disabled={saveAssignments.isPending}
+                onClick={fixAll}
+                disabled={isSaving}
                 className="flex items-center gap-2"
               >
-                {saveAssignments.isPending ? <Loader2 className="animate-spin" size={14} /> : <Lock size={14} />}
+                {isSaving ? <Loader2 className="animate-spin" size={14} /> : <Lock size={14} />}
                 Fijar todas las asignaciones
               </Button>
             </>
@@ -178,7 +109,7 @@ export default function SchedulingPage() {
           assignments={solverResult?.assignments || []}
           getTeamName={getTeamName}
           getTutorName={getTutorName}
-          onToggleFixed={toggleAssignmentFixed}
+          onToggleFixed={toggleFixed}
         />
       </section>
 
