@@ -1,12 +1,21 @@
 'use client';
 
-import { TutorWorkloadCard } from '@/components/features/tutors/TutorWorkloadCard';
-import { SpareCapacityGrid, MainAssignmentGrid, UnassignedTeamsSection } from '@/components/features/solver';
+import dynamic from 'next/dynamic';
 import { Typography, Badge, Button, DropMenu, DropMenuItem } from '@/components/ui';
 import { Lock, Unlock, Download, AlertCircle, CheckCircle, ChevronUp, FileSpreadsheet, FileText, Loader2 } from 'lucide-react';
 import { buildExportRows, downloadCSV, exportToGridExcel } from '@/lib/export';
 import { useScheduling } from '@/lib/hooks/useScheduling';
 import { Tutor } from '@/types';
+
+// Carga dinámica de componentes pesados
+const TutorWorkloadCard = dynamic(() => import('@/components/features/tutors/TutorWorkloadCard').then(m => m.TutorWorkloadCard), {
+  loading: () => <div className="h-48 animate-pulse bg-zinc-900/50 rounded-2xl" />
+});
+const MainAssignmentGrid = dynamic(() => import('@/components/features/solver').then(m => m.MainAssignmentGrid), {
+  loading: () => <div className="h-96 animate-pulse bg-zinc-900/50 rounded-2xl" />
+});
+const SpareCapacityGrid = dynamic(() => import('@/components/features/solver').then(m => m.SpareCapacityGrid));
+const UnassignedTeamsSection = dynamic(() => import('@/components/features/solver').then(m => m.UnassignedTeamsSection));
 
 export default function SchedulingPage() {
   const {

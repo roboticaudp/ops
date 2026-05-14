@@ -1,5 +1,5 @@
 import { Assignment, Team, Tutor, TIME_BLOCKS } from '@/types';
-import * as XLSX from 'xlsx';
+// Eliminamos el import estático superior para ahorrar 300KB de bundle inicial
 
 interface ExportRow {
   equipo: string;
@@ -80,12 +80,15 @@ export function downloadCSV(rows: ExportRow[], filename: string) {
 /**
  * Exporta las asignaciones siguiendo el formato de cuadrícula de la plantilla del usuario
  */
-export function exportToGridExcel(
+export async function exportToGridExcel(
   assignments: Assignment[],
   teams: Team[],
   tutors: Tutor[],
   filename: string
 ) {
+  // Importamos XLSX bajo demanda
+  const XLSX = await import('xlsx');
+  
   const wb = XLSX.utils.book_new();
   
   // Matriz para representar la hoja (filas y columnas)
