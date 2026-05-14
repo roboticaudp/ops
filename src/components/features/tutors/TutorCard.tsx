@@ -2,9 +2,9 @@
 
 import { useState } from 'react';
 import { Tutor, Assignment } from '@/types';
-import { Card, Typography, Badge, Avatar, Counter, ActionButtons } from '@/components/ui';
+import { Card, Typography, Badge, Avatar, Counter, Button } from '@/components/ui';
 import { BlockSelectionGrid } from '@/components/features/solver/grids';
-import { Mail, Calendar, Users } from 'lucide-react';
+import { Mail, Calendar, Users, Save, RefreshCcw } from 'lucide-react';
 import { EntitySidebar } from '@/components/layout/EntitySidebar';
 
 export function TutorCard({ tutor, assignments, onUpdate }: { tutor: Tutor, assignments: Assignment[], onUpdate?: (id: string, updates: Partial<Tutor>) => Promise<boolean> }) {
@@ -66,11 +66,25 @@ export function TutorCard({ tutor, assignments, onUpdate }: { tutor: Tutor, assi
         </div>
 
         {hasChanges && (
-          <ActionButtons
-            onSave={handleSave}
-            onReset={handleReset}
-            loading={loading}
-          />
+          <div className="mt-8 flex flex-col gap-2 animate-in slide-in-from-bottom-2 duration-300">
+            <Button
+              className="w-full"
+              disabled={loading}
+              onClick={handleSave}
+            >
+              <Save size={14} className="mr-2" />
+              {loading ? 'Guardando...' : 'Guardar Cambios'}
+            </Button>
+            <Button
+              variant="secondary"
+              className="w-full"
+              disabled={loading}
+              onClick={handleReset}
+            >
+              <RefreshCcw size={14} className="mr-2" />
+              Descartar
+            </Button>
+          </div>
         )}
       </EntitySidebar>
 

@@ -2,7 +2,6 @@ export * from './Skeleton';
 export * from './ExpandableForm';
 export * from './Typography';
 export * from './Button';
-export * from './ActionButtons';
 export * from './Avatar';
 export * from './Counter';
 export * from './Calendar';

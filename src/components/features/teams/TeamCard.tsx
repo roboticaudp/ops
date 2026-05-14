@@ -2,8 +2,8 @@
 
 import { useState } from 'react';
 import { Team } from '@/types';
-import { Card, Typography, Avatar, ActionButtons, Badge, Button } from '@/components/ui';
-import { Trash2, Calendar } from 'lucide-react';
+import { Card, Typography, Avatar, Badge, Button } from '@/components/ui';
+import { Trash2, Calendar, Save, RefreshCcw } from 'lucide-react';
 import { EntitySidebar } from '@/components/layout/EntitySidebar';
 import { BlockSelectionGrid } from '@/components/features/solver/grids';
 
@@ -74,11 +74,25 @@ export function TeamCard({ team, onUpdate, onDelete }: TeamCardProps) {
         </div>
 
         {hasChanges && (
-          <ActionButtons
-            onSave={handleSave}
-            onReset={handleReset}
-            loading={loading}
-          />
+          <div className="mt-8 flex flex-col gap-2 animate-in slide-in-from-bottom-2 duration-300">
+            <Button
+              className="w-full"
+              disabled={loading}
+              onClick={handleSave}
+            >
+              <Save size={14} className="mr-2" />
+              {loading ? 'Guardando...' : 'Guardar Cambios'}
+            </Button>
+            <Button
+              variant="secondary"
+              className="w-full"
+              disabled={loading}
+              onClick={handleReset}
+            >
+              <RefreshCcw size={14} className="mr-2" />
+              Descartar
+            </Button>
+          </div>
         )}
       </EntitySidebar>
 
