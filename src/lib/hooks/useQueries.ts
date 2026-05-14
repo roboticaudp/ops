@@ -15,6 +15,7 @@ export function useCompetitions() {
   return useQuery({
     queryKey: QUERY_KEYS.competitions,
     queryFn: () => CompetitionService.getAll(),
+    staleTime: 1000 * 60 * 30, // 30 minutos (las competencias no cambian seguido)
   });
 }
 
@@ -25,18 +26,21 @@ export function useCompetitionData(competitionId: string | undefined) {
     queryKey: QUERY_KEYS.teams(competitionId!),
     queryFn: () => TeamService.getByCompetition(competitionId!),
     enabled: isEnabled,
+    staleTime: 1000 * 60 * 5, // 5 minutos
   });
 
   const tutorsQuery = useQuery({
     queryKey: QUERY_KEYS.tutors(competitionId!),
     queryFn: () => TutorService.getByCompetition(competitionId!),
     enabled: isEnabled,
+    staleTime: 1000 * 60 * 5, // 5 minutos
   });
 
   const assignmentsQuery = useQuery({
     queryKey: QUERY_KEYS.competitionAssignments(competitionId!),
     queryFn: () => CompetitionService.getAssignmentsState(competitionId!),
     enabled: isEnabled,
+    staleTime: 1000 * 60 * 2, // 2 minutos (esto cambia más seguido)
   });
 
   return {

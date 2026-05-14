@@ -18,7 +18,7 @@ export const CompetitionService = {
   async getActive(supabase: SupabaseClient = defaultClient) {
     const { data, error } = await supabase
       .from('competitions')
-      .select('*')
+      .select('id, name, year, was_held, status')
       .eq('status', 'active')
       .single();
     
