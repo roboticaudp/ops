@@ -62,7 +62,7 @@ export function Sidebar() {
   const pathname = usePathname();
 
   return (
-    <aside className="w-56 flex-shrink-0 sticky top-32 h-fit">
+    <aside className="w-56 flex-shrink-0 sticky top-36 h-fit">
       <nav aria-label="Navegación Principal">
         <div className="flex flex-col gap-8">
           <div>

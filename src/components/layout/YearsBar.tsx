@@ -13,8 +13,8 @@ export function YearsBar() {
   );
 
   return (
-    <div className="w-full bg-zinc-950/50 backdrop-blur-xl border-b border-zinc-900">
-      <div className="px-8 py-3 flex items-center justify-center gap-2">
+    <div className="w-full h-[65px] flex items-center bg-zinc-950/50 backdrop-blur-xl border-b border-zinc-900">
+      <div className="px-8 w-full flex items-center justify-center gap-2">
         <span className="text-xs font-bold uppercase opacity-[0.87]">Ediciones</span>
         <div className="flex items-center gap-1 max-w-4xl overflow-x-auto overflow-y-hidden no-scrollbar">
           {loading ? (
