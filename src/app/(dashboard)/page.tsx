@@ -6,8 +6,8 @@ import { SolverResult } from '@/lib';
 import { TutorWorkloadCard } from '@/components/features/tutors/TutorWorkloadCard';
 import { SpareCapacityGrid, MainAssignmentGrid, UnassignedTeamsSection } from '@/components/features/solver';
 import { useCompetition } from '@/lib/context/CompetitionContext';
-import { Typography, Badge, Button } from '@/components/ui';
-import { Lock, Unlock, Download, AlertCircle, CheckCircle } from 'lucide-react';
+import { Typography, Badge, Button, DropMenu, DropMenuItem } from '@/components/ui';
+import { Lock, Unlock, Download, AlertCircle, CheckCircle, ChevronUp, FileSpreadsheet, FileText } from 'lucide-react';
 import { buildExportRows, downloadCSV, exportToGridExcel } from '@/lib/export';
 import { TeamService } from '@/services/team.service';
 import { TutorService } from '@/services/tutor.service';
@@ -135,29 +135,38 @@ export default function SchedulingPage() {
         <div className="flex justify-end gap-3 mb-4">
           {result && (
             <>
-              <Button
-                variant="outline"
-                onClick={() => {
-                  const name = activeCompetition?.name?.replace(/\s+/g, '_') || 'asignaciones';
-                  exportToGridExcel(result.assignments, teams, tutors, `${name}_plantilla.xlsx`);
-                }}
-                className="flex items-center gap-2 border-green-900/50 hover:bg-green-900/10 text-green-400"
-              >
-                <Download size={14} />
-                Exportar Plantilla (Excel)
-              </Button>
-              <Button
-                variant="outline"
-                onClick={() => {
-                  const rows = buildExportRows(result.assignments, teams, tutors);
-                  const name = activeCompetition?.name?.replace(/\s+/g, '_') || 'asignaciones';
-                  downloadCSV(rows, `${name}_asignaciones.csv`);
-                }}
-                className="flex items-center gap-2"
-              >
-                <Download size={14} />
-                Exportar CSV
-              </Button>
+              <div className="group relative">
+                <Button
+                  variant="outline"
+                  className="flex items-center gap-2 border-green-900/50 hover:bg-green-900/10 text-green-400"
+                >
+                  <Download size={14} />
+                  Exportar
+                  <ChevronUp size={12} className="opacity-50" />
+                </Button>
+                
+                <DropMenu position="up">
+                  <DropMenuItem
+                    icon={FileSpreadsheet}
+                    onClick={() => {
+                      const name = activeCompetition?.name?.replace(/\s+/g, '_') || 'asignaciones';
+                      exportToGridExcel(result.assignments, teams, tutors, `${name}_plantilla.xlsx`);
+                    }}
+                  >
+                    Plantilla (Excel)
+                  </DropMenuItem>
+                  <DropMenuItem
+                    icon={FileText}
+                    onClick={() => {
+                      const rows = buildExportRows(result.assignments, teams, tutors);
+                      const name = activeCompetition?.name?.replace(/\s+/g, '_') || 'asignaciones';
+                      downloadCSV(rows, `${name}_asignaciones.csv`);
+                    }}
+                  >
+                    Asignaciones (CSV)
+                  </DropMenuItem>
+                </DropMenu>
+              </div>
               <Button
                 variant="outline"
                 onClick={unfixAllAssignments}

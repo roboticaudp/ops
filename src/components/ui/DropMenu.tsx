@@ -2,15 +2,26 @@
 
 import React from 'react';
 import { LucideIcon } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
-interface DropdownMenuProps {
+interface DropMenuProps {
   children: React.ReactNode;
   className?: string;
+  position?: 'up' | 'down';
 }
 
-export function DropdownMenu({ children, className = "" }: DropdownMenuProps) {
+export function DropMenu({ children, className = "", position = 'down' }: DropMenuProps) {
+  const positionClasses = {
+    down: "top-full pt-2",
+    up: "bottom-full pb-2"
+  };
+
   return (
-    <div className={`absolute right-0 top-full pt-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 ${className}`}>
+    <div className={cn(
+      "absolute right-0 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50",
+      positionClasses[position],
+      className
+    )}>
       <div className="bg-zinc-900 border border-zinc-800 rounded-xl shadow-2xl p-1.5 min-w-[180px] backdrop-blur-xl">
         {children}
       </div>
@@ -18,7 +29,7 @@ export function DropdownMenu({ children, className = "" }: DropdownMenuProps) {
   );
 }
 
-interface DropdownMenuItemProps {
+interface DropMenuItemProps {
   children: React.ReactNode;
   onClick?: () => void;
   icon?: LucideIcon;
@@ -26,13 +37,13 @@ interface DropdownMenuItemProps {
   className?: string;
 }
 
-export function DropdownMenuItem({ 
+export function DropMenuItem({ 
   children, 
   onClick, 
   icon: Icon, 
   variant = 'default', 
   className = "" 
-}: DropdownMenuItemProps) {
+}: DropMenuItemProps) {
   const variants = {
     default: "text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800/50",
     danger: "text-red-400/80 hover:text-red-400 hover:bg-red-400/10"
@@ -49,6 +60,6 @@ export function DropdownMenuItem({
   );
 }
 
-export function DropdownMenuSeparator() {
+export function DropMenuSeparator() {
   return <div className="h-px bg-zinc-800 my-1 mx-1.5" />;
 }

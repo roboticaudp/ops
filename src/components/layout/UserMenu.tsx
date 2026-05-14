@@ -1,8 +1,8 @@
 'use client';
 
-import { LogOut, Users, Calendar } from 'lucide-react';
+import { LogOut } from 'lucide-react';
 import { useAuth } from '@/lib/context/AuthContext';
-import { Avatar, Typography, Skeleton, DropdownMenu, DropdownMenuItem, DropdownMenuSeparator } from '@/components/ui';
+import { Avatar, Typography, Skeleton, DropMenu, DropMenuItem } from '@/components/ui';
 import { AuthService } from '@/services/auth.service';
 import { useRouter } from 'next/navigation';
 
@@ -38,15 +38,15 @@ export function UserMenu() {
           className="cursor-pointer h-8 w-8"
         />
 
-        <DropdownMenu>
-          <DropdownMenuItem
+        <DropMenu>
+          <DropMenuItem
             icon={LogOut}
             variant="danger"
             onClick={handleLogout}
           >
             Cerrar sesión
-          </DropdownMenuItem>
-        </DropdownMenu>
+          </DropMenuItem>
+        </DropMenu>
       </div>
     </div>
   );
