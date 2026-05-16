@@ -45,6 +45,19 @@ export function useScheduling() {
     await saveAssignments.mutateAsync({ competitionId: activeCompetition.id, assignments: allUnfixed });
   }, [activeCompetition, solverResult, saveAssignments]);
 
+  const moveAssignment = useCallback(async (assignment: Assignment, newBlockId: string) => {
+    if (!activeCompetition || !solverResult) return;
+
+    const updatedAssignments = solverResult.assignments.map(a =>
+      a.team_id === assignment.team_id ? { ...a, block_id: newBlockId, is_fixed: true } : a
+    );
+
+    await saveAssignments.mutateAsync({
+      competitionId: activeCompetition.id,
+      assignments: updatedAssignments
+    });
+  }, [activeCompetition, solverResult, saveAssignments]);
+
   return {
     activeCompetition,
     data: {
@@ -61,7 +74,8 @@ export function useScheduling() {
     actions: {
       toggleFixed,
       fixAll,
-      unfixAll
+      unfixAll,
+      moveAssignment
     },
     utils: {
       getTeamName: utils.getTeamName,

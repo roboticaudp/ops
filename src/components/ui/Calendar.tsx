@@ -39,6 +39,9 @@ interface CalendarBlockProps {
   variant?: 'default' | 'active' | 'inactive' | 'highlight';
   className?: string;
   onClick?: () => void;
+  onDragOver?: (e: React.DragEvent) => void;
+  onDragLeave?: (e: React.DragEvent) => void;
+  onDrop?: (e: React.DragEvent) => void;
   minHeight?: string;
 }
 
@@ -49,6 +52,9 @@ export function CalendarBlock({
   variant = 'default',
   className,
   onClick,
+  onDragOver,
+  onDragLeave,
+  onDrop,
   minHeight = "85px"
 }: CalendarBlockProps) {
   const Component = onClick ? 'button' : 'div';
@@ -56,16 +62,19 @@ export function CalendarBlock({
   const variants = {
     default: "bg-zinc-900/20 border-zinc-800/50",
     active: "bg-zinc-900/60 border-zinc-800/50",
-    inactive: "opacity-10 border-dashed grayscale pointer-events-none",
-    highlight: "bg-zinc-900/40 border-zinc-800"
+    inactive: "opacity-40 bg-zinc-900/10 border-dashed border-zinc-800/40 pointer-events-none",
+    highlight: "opacity-85 bg-blue-500/[0.04] border-dashed border-blue-500/30 shadow-sm shadow-blue-500/5"
   };
 
   return (
     <Component
       onClick={onClick}
+      onDragOver={onDragOver}
+      onDragLeave={onDragLeave}
+      onDrop={onDrop}
       style={{ minHeight }}
       className={cn(
-        "w-full p-3 rounded-lg border transition-all flex flex-col justify-between text-left group",
+        "w-full p-3 rounded-xl border transition-all duration-300 ease-in-out flex flex-col justify-between text-left group",
         variants[variant],
         onClick && "active:scale-[0.99]",
         className

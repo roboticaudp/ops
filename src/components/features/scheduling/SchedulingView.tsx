@@ -22,7 +22,7 @@ export function SchedulingView() {
     activeCompetition,
     data: { teams, tutors, solverResult, assignmentsByTutor },
     status: { isLoading, isSolving, isSaving },
-    actions: { fixAll, unfixAll, toggleFixed },
+    actions: { fixAll, unfixAll, toggleFixed, moveAssignment },
     utils: { getTeamName, getTutorName }
   } = useScheduling();
 
@@ -118,6 +118,7 @@ export function SchedulingView() {
           getTeamName={getTeamName}
           getTutorName={getTutorName}
           onToggleFixed={toggleFixed}
+          onMoveAssignment={moveAssignment}
         />
       </section>
 
