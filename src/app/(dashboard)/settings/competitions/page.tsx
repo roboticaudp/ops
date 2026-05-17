@@ -106,7 +106,7 @@ export default function SettingsCompetitionsPage() {
           onClick={() => setIsAdding(true)}
           className="bg-blue-600 hover:bg-blue-500 font-bold uppercase tracking-tighter"
         >
-          <Plus size={18} /> Nueva Edición
+          <Plus size={18} /> Nueva Versión
         </Button>
       </div>
       {isAdding && (
@@ -128,7 +128,7 @@ export default function SettingsCompetitionsPage() {
                 type="text"
                 value={newName}
                 onChange={(e) => setNewName(e.target.value)}
-                placeholder="Ej: OMR 2024"
+                placeholder="Ej: Versión X"
                 className="w-full bg-zinc-950 border border-zinc-800 rounded-xl py-3 px-4 text-white"
                 required
               />
@@ -152,8 +152,8 @@ export default function SettingsCompetitionsPage() {
                 <div>
                   <div className="flex items-center gap-3 mb-1">
                     <Typography as="h3" className="text-xl font-bold">{comp.name}</Typography>
-                    <Badge color={comp.status === 'active' ? 'green' : 'zinc'}>
-                      {comp.status === 'active' ? 'Activa (Principal)' : 'Archivada'}
+                    <Badge color={comp.status === 'active' ? 'green' : comp.was_held ? 'zinc' : 'red'}>
+                      {comp.status === 'active' ? 'En Progreso (Principal)' : comp.was_held ? 'Finalizado' : 'No realizado'}
                     </Badge>
                   </div>
                   <div className="flex items-center gap-4 text-zinc-500 text-sm">
