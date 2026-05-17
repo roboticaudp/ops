@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import type { Assignment, Block } from '@/types';
 import { Calendar, Badge, CalendarBlock } from '@/components/ui';
 import { AssignmentItem } from '@/components/features/scheduling/AssignmentItem';
@@ -26,17 +26,29 @@ export function MainAssignmentGrid({
   const [dragOverBlockId, setDragOverBlockId] = useState<string | null>(null);
   const [dragOverAssignmentId, setDragOverAssignmentId] = useState<string | null>(null);
 
+  // Optimización O(1): Indexar asignaciones por block_id
+  const assignmentsMap = useMemo(() => {
+    const map = new Map<string, Assignment[]>();
+    for (const a of assignments) {
+      if (!map.has(a.block_id)) {
+        map.set(a.block_id, []);
+      }
+      map.get(a.block_id)!.push(a);
+    }
+    return map;
+  }, [assignments]);
+
   return (
     <Calendar
       renderBlock={(block: Block) => {
-        const blockAssignments = assignments.filter(a => a.block_id === block.id);
+        const blockAssignments = assignmentsMap.get(block.id) || [];
         const isFull = blockAssignments.length >= 4;
         const hasAssignments = blockAssignments.length > 0;
         const isDragging = !!draggedAssignment;
         const isOver = dragOverBlockId === block.id;
 
         let variant: 'active' | 'inactive' | 'highlight' = hasAssignments ? 'active' : 'inactive';
-        if (isDragging && !hasAssignments) {
+        if (isDragging && !isFull) {
           variant = 'highlight';
         }
 
@@ -45,7 +57,7 @@ export function MainAssignmentGrid({
             key={block.id}
             time={block.startTime}
             variant={variant}
-            className={isOver ? 'border-blue-500 bg-blue-500/15 ring-2 ring-blue-500/40 shadow-lg shadow-blue-500/10 scale-[1.01] transition-all duration-200' : ''}
+            className={isOver ? 'border-blue-500 bg-blue-500/15 ring-1 ring-blue-500/40 transition-all duration-200' : ''}
             badge={<Badge color={isFull ? (blockAssignments.length > 4 ? 'red' : 'green') : 'blue'}>{blockAssignments.length}/4</Badge>}
             onDragOver={(e) => {
               e.preventDefault();
@@ -72,12 +84,12 @@ export function MainAssignmentGrid({
               setDraggedAssignment(null);
             }}
           >
-            <div className="space-y-0.5">
-              {blockAssignments.map((a, i) => {
+            <div className="space-y-2 pt-1.5">
+              {blockAssignments.map((a) => {
                 const isOverThisCard = dragOverAssignmentId === a.team_id;
                 return (
                   <AssignmentItem
-                    key={i}
+                    key={a.team_id}
                     teamName={getTeamName(a.team_id)}
                     tutorName={getTutorName(a.tutor_id)}
                     isFixed={a.is_fixed}

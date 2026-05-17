@@ -44,8 +44,8 @@ export function SchedulingView() {
   }
 
   return (
-    <div className="space-y-8 md:space-y-12">
-      <header className="mb-6 md:mb-10">
+    <div className="w-full space-y-12 md:space-y-16 pb-24">
+      <header className="mb-6 md:mb-10 border-b border-zinc-800 pb-8">
         <div className="flex flex-col md:flex-row md:items-center gap-4 mb-3">
           <Typography as="h1" className="text-3xl md:text-5xl lg:text-6xl font-bold">
             {activeCompetition?.name}
@@ -57,10 +57,14 @@ export function SchedulingView() {
         </Typography>
       </header>
 
-      <section className="pt-12">
-        <div className="flex justify-end gap-3 mb-4">
+      <section aria-labelledby="h2-calendar" className="border-b border-zinc-800 pb-12">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+          <Typography as="h2" id="h2-calendar" className="text-xl font-bold">
+            Grilla Principal de Horarios
+          </Typography>
+
           {solverResult && (
-            <>
+            <menu className="flex flex-wrap items-center justify-end gap-3" aria-label="Acciones logísticas">
               <div className="group relative">
                 <Button
                   variant="outline"
@@ -109,7 +113,7 @@ export function SchedulingView() {
                 {isSaving ? <Loader2 className="animate-spin" size={14} /> : <Lock size={14} />}
                 Fijar todas las asignaciones
               </Button>
-            </>
+            </menu>
           )}
         </div>
 
@@ -123,12 +127,12 @@ export function SchedulingView() {
         />
       </section>
 
-      <section className="pt-12">
-        <header className="mb-10">
-          <Typography as="h2">Equipos sin Asignación</Typography>
+      <section aria-labelledby="h2-unassigned" className="border-b border-zinc-800 pb-12">
+        <header className="flex flex-wrap items-center justify-between gap-4 mb-8">
+          <Typography as="h2" id="h2-unassigned" className="text-xl font-bold">Equipos sin Asignación</Typography>
           <Badge color={(solverResult?.unassignedTeams?.length ?? 0) > 0 ? 'red' : 'green'}>
             {(solverResult?.unassignedTeams?.length ?? 0) > 0 ? <AlertCircle size={11} /> : <CheckCircle size={11} />}
-            {solverResult?.unassignedTeams?.length ?? 0} equipos
+            <span className="font-bold">{solverResult?.unassignedTeams?.length ?? 0} equipos</span>
           </Badge>
         </header>
         <UnassignedTeamsSection
@@ -139,18 +143,18 @@ export function SchedulingView() {
         />
       </section>
 
-      <section className="pt-12">
-        <header className="mb-10">
-          <Typography as="h2">Mapa de Disponibilidad Remanente</Typography>
+      <section aria-labelledby="h2-spare-capacity" className="border-b border-zinc-800 pb-12">
+        <header className="mb-8">
+          <Typography as="h2" id="h2-spare-capacity" className="text-xl font-bold mb-1">Mapa de Disponibilidad Remanente</Typography>
           <Typography as="p" emphasis="medium">Bloques con tutores que tienen cupos libres y están disponibles.</Typography>
         </header>
         <SpareCapacityGrid tutors={tutors} teams={teams} assignments={solverResult?.assignments || []} />
       </section>
 
-      <section className="pt-12">
-        <header className="mb-10">
-          <Typography as="h2">Resumen de Carga de Tutores</Typography>
-          <Typography as="p" emphasis="medium">Visualización de la carga de trabajo de cada tutor.</Typography>
+      <section aria-labelledby="h2-tutor-workload" className="pt-4">
+        <header className="mb-8">
+          <Typography as="h2" id="h2-tutor-workload" className="text-xl font-bold mb-1">Resumen de Carga de Tutores</Typography>
+          <Typography as="p" emphasis="medium">Visualización detallada de la carga de trabajo semanal de cada tutor.</Typography>
         </header>
         <div className="flex flex-col gap-8">
           <Virtuoso

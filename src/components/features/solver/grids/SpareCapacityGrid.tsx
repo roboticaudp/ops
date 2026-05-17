@@ -1,5 +1,6 @@
 'use client';
 
+import { useMemo } from 'react';
 import { Tutor, Team, Assignment, Block } from '@/types';
 import { Calendar, CalendarBlock, Typography } from '@/components/ui';
 import { SchedulingRules } from '@/lib/solver';
@@ -11,21 +12,41 @@ interface SpareCapacityGridProps {
 }
 
 export function SpareCapacityGrid({ tutors, teams, assignments }: SpareCapacityGridProps) {
+  // Indexaciones en memoria O(1)
+  const assignedTeamIds = useMemo(() => new Set(assignments.map(a => a.team_id)), [assignments]);
+
+  const assignmentsByBlock = useMemo(() => {
+    const map = new Map<string, Set<string>>(); // Set de tutor_id asignados por bloque
+    for (const a of assignments) {
+      if (!map.has(a.block_id)) map.set(a.block_id, new Set());
+      map.get(a.block_id)!.add(a.tutor_id);
+    }
+    return map;
+  }, [assignments]);
+
+  const assignmentsCountByTutor = useMemo(() => {
+    const map = new Map<string, number>();
+    for (const a of assignments) {
+      map.set(a.tutor_id, (map.get(a.tutor_id) || 0) + 1);
+    }
+    return map;
+  }, [assignments]);
+
   const getSpareCapacityForBlock = (blockId: string) => {
     if (SchedulingRules.isBlockAtFullCapacity(blockId, assignments)) return [];
 
     const unassignedTeamsInBlock = teams.filter(team => {
-      const needsBlock = team.availability.includes(blockId);
-      const isAlreadyAssigned = assignments.some(a => a.team_id === team.id);
-      return needsBlock && !isAlreadyAssigned;
+      return team.availability.includes(blockId) && !assignedTeamIds.has(team.id);
     });
 
     if (unassignedTeamsInBlock.length === 0) return [];
 
+    const tutorsAssignedInBlock = assignmentsByBlock.get(blockId) || new Set();
+
     return tutors.filter(tutor => {
       const isAvailable = tutor.availability.includes(blockId);
-      const isAlreadyAssignedInBlock = assignments.some(a => a.tutor_id === tutor.id && a.block_id === blockId);
-      const tutorAssignmentsCount = assignments.filter(a => a.tutor_id === tutor.id).length;
+      const isAlreadyAssignedInBlock = tutorsAssignedInBlock.has(tutor.id);
+      const tutorAssignmentsCount = assignmentsCountByTutor.get(tutor.id) || 0;
       const hasSpareCapacity = tutorAssignmentsCount < tutor.max_sessions;
 
       return isAvailable && !isAlreadyAssignedInBlock && hasSpareCapacity;

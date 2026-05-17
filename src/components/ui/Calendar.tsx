@@ -63,7 +63,7 @@ export function CalendarBlock({
     default: "bg-zinc-900/20 border-zinc-800/50",
     active: "bg-zinc-900/60 border-zinc-800/50",
     inactive: "opacity-40 bg-zinc-900/10 border-dashed border-zinc-800/40 pointer-events-none",
-    highlight: "opacity-85 bg-blue-500/[0.04] border-dashed border-blue-500/30 shadow-sm shadow-blue-500/5"
+    highlight: "opacity-90 bg-blue-500/[0.05] border-dashed border-blue-500/40"
   };
 
   return (
