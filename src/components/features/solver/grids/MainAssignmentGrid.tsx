@@ -11,6 +11,7 @@ interface MainAssignmentGridProps {
   getTutorName: (id: string) => string;
   onToggleFixed: (assignment: Assignment) => void;
   onMoveAssignment?: (assignment: Assignment, newBlockId: string) => void;
+  onSwapAssignments?: (source: Assignment, target: Assignment) => void;
 }
 
 export function MainAssignmentGrid({
@@ -18,10 +19,12 @@ export function MainAssignmentGrid({
   getTeamName,
   getTutorName,
   onToggleFixed,
-  onMoveAssignment
+  onMoveAssignment,
+  onSwapAssignments
 }: MainAssignmentGridProps) {
   const [draggedAssignment, setDraggedAssignment] = useState<Assignment | null>(null);
   const [dragOverBlockId, setDragOverBlockId] = useState<string | null>(null);
+  const [dragOverAssignmentId, setDragOverAssignmentId] = useState<string | null>(null);
 
   return (
     <Calendar
@@ -70,24 +73,56 @@ export function MainAssignmentGrid({
             }}
           >
             <div className="space-y-0.5">
-              {blockAssignments.map((a, i) => (
-                <AssignmentItem
-                  key={i}
-                  teamName={getTeamName(a.team_id)}
-                  tutorName={getTutorName(a.tutor_id)}
-                  isFixed={a.is_fixed}
-                  onToggle={() => onToggleFixed(a)}
-                  draggable={true}
-                  onDragStart={(e) => {
-                    e.stopPropagation();
-                    setDraggedAssignment(a);
-                  }}
-                  onDragEnd={() => {
-                    setDraggedAssignment(null);
-                    setDragOverBlockId(null);
-                  }}
-                />
-              ))}
+              {blockAssignments.map((a, i) => {
+                const isOverThisCard = dragOverAssignmentId === a.team_id;
+                return (
+                  <AssignmentItem
+                    key={i}
+                    teamName={getTeamName(a.team_id)}
+                    tutorName={getTutorName(a.tutor_id)}
+                    isFixed={a.is_fixed}
+                    onToggle={() => onToggleFixed(a)}
+                    draggable={true}
+                    isOverTarget={isOverThisCard}
+                    onDragStart={(e) => {
+                      e.stopPropagation();
+                      setDraggedAssignment(a);
+                    }}
+                    onDragEnd={() => {
+                      setDraggedAssignment(null);
+                      setDragOverBlockId(null);
+                      setDragOverAssignmentId(null);
+                    }}
+                    onDragOver={(e) => {
+                      if (draggedAssignment && draggedAssignment.team_id !== a.team_id) {
+                        e.preventDefault();
+                        e.stopPropagation(); // Evitar que CalendarBlock reciba onDragOver
+                        if (dragOverAssignmentId !== a.team_id) {
+                          setDragOverAssignmentId(a.team_id);
+                        }
+                        if (dragOverBlockId !== null) {
+                          setDragOverBlockId(null);
+                        }
+                      }
+                    }}
+                    onDragLeave={() => {
+                      if (dragOverAssignmentId === a.team_id) {
+                        setDragOverAssignmentId(null);
+                      }
+                    }}
+                    onDrop={(e) => {
+                      if (draggedAssignment && draggedAssignment.team_id !== a.team_id) {
+                        e.preventDefault();
+                        e.stopPropagation(); // Evitar que CalendarBlock reciba onDrop
+                        setDragOverAssignmentId(null);
+                        setDragOverBlockId(null);
+                        onSwapAssignments?.(draggedAssignment, a);
+                      }
+                      setDraggedAssignment(null);
+                    }}
+                  />
+                );
+              })}
               {!hasAssignments && (
                 <div className="py-4 text-center border border-dashed border-zinc-800/50 rounded-lg">
                   <p className="text-xs font-bold text-zinc-700">

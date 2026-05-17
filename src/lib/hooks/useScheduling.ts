@@ -58,6 +58,26 @@ export function useScheduling() {
     });
   }, [activeCompetition, solverResult, saveAssignments]);
 
+  const swapAssignments = useCallback(async (source: Assignment, target: Assignment) => {
+    if (!activeCompetition || !solverResult) return;
+
+    // Intercambiar ÚNICAMENTE tutor_id, manteniendo los bloques originales intactos
+    const updatedAssignments = solverResult.assignments.map(a => {
+      if (a.team_id === source.team_id) {
+        return { ...a, tutor_id: target.tutor_id, is_fixed: true };
+      }
+      if (a.team_id === target.team_id) {
+        return { ...a, tutor_id: source.tutor_id, is_fixed: true };
+      }
+      return a;
+    });
+
+    await saveAssignments.mutateAsync({
+      competitionId: activeCompetition.id,
+      assignments: updatedAssignments
+    });
+  }, [activeCompetition, solverResult, saveAssignments]);
+
   return {
     activeCompetition,
     data: {
@@ -75,7 +95,8 @@ export function useScheduling() {
       toggleFixed,
       fixAll,
       unfixAll,
-      moveAssignment
+      moveAssignment,
+      swapAssignments
     },
     utils: {
       getTeamName: utils.getTeamName,
