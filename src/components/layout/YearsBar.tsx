@@ -1,16 +1,26 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useMemo, useEffect, useRef } from 'react';
 import { useCompetition } from '@/lib/context/CompetitionContext';
 import { Skeleton } from '@/components/ui';
 
 export function YearsBar() {
   const { competitions, activeCompetition, selectCompetition, loading } = useCompetition();
+  const activeRef = useRef<HTMLButtonElement>(null);
 
   const sorted = useMemo(() =>
     [...competitions].sort((a, b) => a.year - b.year),
     [competitions]
   );
+
+  useEffect(() => {
+    if (!loading && activeRef.current) {
+      const timer = setTimeout(() => {
+        activeRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+      }, 150);
+      return () => clearTimeout(timer);
+    }
+  }, [loading, activeCompetition]);
 
   return (
     <div className="w-full h-[65px] flex items-center bg-zinc-950/50 backdrop-blur-xl border-b border-zinc-900">
@@ -27,13 +37,14 @@ export function YearsBar() {
               return (
                 <button
                   key={comp.id}
+                  ref={isActive ? activeRef : null}
                   onClick={() => wasHeld && selectCompetition(comp.id)}
                   disabled={!wasHeld}
                   className={`flex flex-col px-3 md:px-4 py-1.5 md:py-2 rounded-lg transition-all text-left relative group flex-shrink-0 ${isActive
                     ? 'bg-blue-600/10 text-blue-400 border border-blue-500/20'
                     : wasHeld
                       ? 'hover:bg-zinc-800 text-zinc-400 hover:text-zinc-200'
-                      : 'opacity-20 cursor-not-allowed'
+                      : 'opacity-20'
                     }`}
                 >
                   <span className="text-[10px] md:text-xs font-bold opacity-[0.87]">{comp.year}</span>
