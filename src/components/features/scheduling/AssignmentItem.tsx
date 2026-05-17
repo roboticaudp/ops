@@ -38,7 +38,7 @@ export function AssignmentItem({
       onDragLeave={onDragLeave}
       onDrop={onDrop}
       onClick={onToggle}
-      className={`cursor-grab active:cursor-grabbing flex items-center justify-between p-1.5 rounded-md transition-all duration-200 group border ${
+      className={`animate-pop-in cursor-grab active:cursor-grabbing flex items-center justify-between p-1.5 rounded-md transition-all duration-200 group border ${
         isOverTarget
           ? 'bg-amber-500/15 border-amber-500/50'
           : isFixed
@@ -60,7 +60,8 @@ export function AssignmentItem({
             {teamName}
           </span>
           <p
-            className={`text-[10px] truncate transition-colors duration-200 ${
+            key={tutorName}
+            className={`animate-slide-fade text-[10px] truncate transition-colors duration-200 ${
               isOverTarget ? 'text-amber-500/90 font-semibold' : 'text-zinc-500 font-semibold'
             }`}
             title={tutorName}
